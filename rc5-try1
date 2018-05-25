@@ -1,0 +1,24 @@
+Thanks!
+
+Let's do it then using our existing rc5 package.
+
+Let's do this
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc5-try1 --tests baseline,deltafs \
+--skipreads --env XX_HG_INTERVAL=500 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+./vpicexpt_gen.pl ${std} --run 2 --dw off
+./vpicexpt_gen.pl ${std} --run 3 --dw off
+./vpicexpt_gen.pl ${std} --run 4 --dw off
+
+exit 0
+
+So basically we will go back to sc17b, and skip both reads and writes. 
+And so there is no need for DW either.
+

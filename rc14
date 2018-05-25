@@ -1,0 +1,47 @@
+# MCHECKSUM_USE_SSE4_2:BOOL=ON
+
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc14-sp2dx/deltafs-umbrella-1.0rc14-sp2dx-TT.tar.gz
+
+The goal for today is to retry ofi+gni with updated mercury(with 
+mchecksum fixes) and preload (with paranoid checks) code.
+
+I just realized that we forgot to define MERCURY_CHECKSUM as a cmake 
+cache var so I guess let's just hack it by editing 
+umbrella/umbrella/mercury.cmake L68 to change 
+-DMERCURY_USE_CHECKSUMS:BOOL=OFF to ON.
+https://github.com/pdlfs/deltafs-umbrella/blob/master/umbrella/umbrella/mercury.cmake#L68
+
+We then go compile the code.
+
+module unload cray-hugepage2M
+module swap PrgEnv-intel PrgEnv-gnu
+
+env CC=cc CXX=CC \
+cmake -DSKIP_TESTS=ON -DMERCURY_NA_INITIALLY_ON="bmi;ofi;sm" \
+       -DMERCURY_SELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/oct17/r14 \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+
+After that, we try a single-node run to see if gni is gonna work this 
+time. This will be a shuffle-only and write-bypassing run.
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17x --iterations 1 --core-spec 
+1 \
+--overcommit enable --tag rc14-try1-ofi --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_RPC_BUF=32768 \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_RPC_HASHSIG=1 \
+--env XX_RPC_CHECKS=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+
+exit 0

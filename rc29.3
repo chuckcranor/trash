@@ -1,0 +1,37 @@
+# We do run 1 to run 5. We don't do run 6.
+
+for r in 1 2 3 4 5; do
+# deltafs-imd (no filters)
+std="--constraints haswell --experiment sc18b --iterations 1 \
+--overcommit enable --tag rc29-imd --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=0 \
+--env XX_USE_LEVELDB=0 \
+--env XX_BF_BITS=0"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# deltafs-imd-bf (yes filters)
+std="--constraints haswell --experiment sc18b --iterations 1 \
+--overcommit enable --tag rc29-imd-bf --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=0 \
+--env XX_USE_LEVELDB=0 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+done
+

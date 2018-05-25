@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# 17b baseline
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc23-b --tests baseline --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names"
+
+eval ../vpicexpt_gen.pl ${std} --run 6 --dw int .
+
+# 17bx baseline
+std="--constraints haswell --experiment sc17bx --iterations 1 \
+--overcommit enable --tag rc23-b --tests baseline --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names"
+
+eval ../vpicexpt_gen.pl ${std} --core-spec 1 --run 6 --dw int .
+

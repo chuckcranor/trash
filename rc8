@@ -1,0 +1,32 @@
+The rc8 package is here:
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc8-sp2dx/deltafs-umbrella-1.0rc8-sp2dx-TT.tar.gz
+
+We first wget it and build it on TT.
+
+Let's put it under /users/ccranor/aug17/r8 and do
+
+env CC=cc CXX=CC \
+cmake -DSKIP_TESTS=ON -DVERBS=OFF -DSELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/aug17/r8 \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+After that,
+
+we do
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17y --iterations 1 --core-spec 
+1 \
+--overcommit enable --tag rc8-try1 --tests baseline,deltafs \
+--env XX_IGNORE_DIRS="fields:hydro:rundata:names" \
+--env XX_HG_INTERVAL=500 \
+--env XX_RPC_SELF_FORWARD=1 \
+--env XX_BYPASS_CH=1" \
+--env XX_SKIP_SMP=0 \
+--env XX_SMP_TH=32
+
+./vpicexpt_gen.pl ${std} --run 1 --dw int
+
+exit 0

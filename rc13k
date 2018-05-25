@@ -1,0 +1,76 @@
+module swap craype-haswell craype-mic-knl?
+
+After that, we do
+
+env CC=cc CXX=CC \
+cmake -DSKIP_TESTS=ON -DOFI=ON -DGNI=ON -DVERBS=OFF -DCHECKSUM=OFF 
+-DSELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/sep17/r13k \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+Let's label it /users/ccranor/sep17/r13k
+
+Next, we generate the job scripts for knlnor (both baseline and 
+deltafs).
+
+#!/bin/sh
+
+std="--partition knl --constraints knl --experiment sc17k --iterations 1 
+--core-spec 4 \
+--overcommit enable --tag rc13-try1-knlnor --tests baseline,deltafs 
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=2MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_INDEX_BUF=1MiB \
+--env XX_MAX_INDEX_BUF=1MiB"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw int
+
+Next, we generate the job scripts for knlnor-noshuffle (deltafs only).
+
+#!/bin/sh
+
+std="--partition knl --constraints knl --experiment sc17k --iterations 1 
+--core-spec 4 \
+--overcommit enable --tag rc13-try1-knlnor-noshuffle --tests deltafs 
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_BYPASS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=2MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_INDEX_BUF=1MiB \
+--env XX_MAX_INDEX_BUF=1MiB"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw int
+
+Finally, we generate the job scripts for knlnor-nowrites (deltafs only).
+
+#!/bin/sh
+
+std="--partition knl --constraints knl --experiment sc17k --iterations 1 
+--core-spec 4 \
+--overcommit enable --tag rc13-try1-knlnor-nowrites --tests deltafs 
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw int
+
+Sign... now we can DOIT!
+

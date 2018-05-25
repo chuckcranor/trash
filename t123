@@ -1,0 +1,20 @@
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+      --overcommit enable --tag try12 --tests deltafs \
+      --skipreads --env XX_BYPASS_WRITE=1 --env XX_RPC_DEPTH=8"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+exit 0
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+      --overcommit enable --tag try13 --tests deltafs \
+      --skipreads --env XX_BYPASS_WRITE=1 --env XX_RPC_DEPTH=4"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+exit 0
+

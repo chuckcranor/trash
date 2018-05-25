@@ -1,0 +1,37 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc17/deltafs-umbrella-1.0rc17-TT.tar.gz
+
+
+Let's do a quick minimal run to see debug the rpc timeout stuff.
+
+We first compile the deck:
+
+module unload craype-hugepages2M
+# keep PrgEnv-intel
+# keep craype-haswell
+
+env CC=cc CXX=CC \
+cmake -DUMBRELLA_SKIP_TESTS=ON -DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_SELF_FORWARD=ON -DMERCURY_CHECKSUM=ON \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/nov17/r17 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+Next, we create the job script.
+
+
+#!/bin/sh
+
+std="--constraints haswell --experiment minimal --iterations 1 \
+--overcommit enable --tag rc17-1h-min --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+./vpicexpt_gen.pl ${std} --run 0 --dw off --extraopts "--cpu_bind=cores"
+
+
+Now we can DOIT.

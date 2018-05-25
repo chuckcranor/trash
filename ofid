@@ -1,0 +1,3294 @@
+diff --git a/prov/verbs/src/ep_dgram/verbs_dgram.h b/prov/verbs/src/ep_dgram/verbs_dgram.h
+index e9449b9..ac4a495 100644
+--- a/prov/verbs/src/ep_dgram/verbs_dgram.h
++++ b/prov/verbs/src/ep_dgram/verbs_dgram.h
+@@ -107,6 +107,7 @@ fi_ibv_dgram_wr_entry_get(struct fi_ibv_dgram_buf_pool *pool)
+ {
+ 	struct fi_ibv_dgram_wr_entry_hdr *buf;
+ 	void *mr = NULL;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	buf = util_buf_alloc_ex(pool->pool, &mr);
+ 	if (OFI_UNLIKELY(!buf))
+@@ -121,6 +122,7 @@ static inline void
+ fi_ibv_dgram_wr_entry_release(struct fi_ibv_dgram_buf_pool *pool,
+ 			      struct fi_ibv_dgram_wr_entry_hdr *buf)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	dlist_remove(&buf->entry);
+ 	util_buf_release(pool->pool, buf);
+ }
+@@ -128,6 +130,7 @@ fi_ibv_dgram_wr_entry_release(struct fi_ibv_dgram_buf_pool *pool,
+ static inline void
+ fi_ibv_dgram_mr_buf_close(void *pool_ctx, void *context)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	/* We would get a (fid_mr *) in context, but
+ 	 * it is safe to cast it into (fid *) */
+ 	fi_close((struct fid *)context);
+@@ -140,6 +143,7 @@ fi_ibv_dgram_mr_buf_reg(void *pool_ctx, void *addr,
+ 	int ret;
+ 	struct fid_mr *mr;
+ 	struct fid_domain *domain = (struct fid_domain *)pool_ctx;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_mr_reg(domain, addr, len, FI_SEND | FI_RECV,
+ 			0, 0, 0, &mr, NULL);
+@@ -152,6 +156,7 @@ fi_ibv_dgram_pool_wr_entry_cancel(struct fi_ibv_dgram_buf_pool *pool)
+ {
+ 	struct dlist_entry *entry;
+ 	struct fi_ibv_dgram_wr_entry_hdr *buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	entry = pool->buf_list.next;
+ 	buf = container_of(entry, struct fi_ibv_dgram_wr_entry_hdr,
+ 			   entry);
+@@ -161,6 +166,7 @@ fi_ibv_dgram_pool_wr_entry_cancel(struct fi_ibv_dgram_buf_pool *pool)
+ static inline void
+ fi_ibv_dgram_pool_destroy(struct fi_ibv_dgram_buf_pool *pool)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (pool->cancel_hndlr) {
+ 		while (!dlist_empty(&pool->buf_list))
+ 			pool->cancel_hndlr(pool);
+@@ -173,6 +179,7 @@ static inline int
+ fi_ibv_dgram_pool_create(struct fi_ibv_dgram_pool_attr *attr,
+ 			 struct fi_ibv_dgram_buf_pool *pool)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	pool->pool = util_buf_pool_create_ex(
+ 			attr->size, 16, 0, attr->count,
+ 			attr->alloc_hndlr, attr->free_hndlr,
+@@ -232,6 +239,7 @@ static inline struct fi_ibv_dgram_av_entry*
+ fi_ibv_dgram_av_lookup_av_entry(struct fi_ibv_dgram_av *av, int index)
+ {
+ 	struct fi_ibv_dgram_av_entry *av_entry;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (index < 0 || (size_t)index > av->util_av.count) {
+ 		VERBS_DBG(FI_LOG_AV, "Unknown address\n");
+@@ -250,6 +258,7 @@ fi_ibv_dgram_av_lookup_av_entry(struct fi_ibv_dgram_av *av, int index)
+ static inline
+ int fi_ibv_dgram_is_completion(uint64_t cq_flags, uint64_t op_flags)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if ((op_flags & FI_COMPLETION) ||
+ 	    (op_flags & (FI_INJECT_COMPLETE	|
+ 			 FI_TRANSMIT_COMPLETE	|
+diff --git a/prov/verbs/src/ep_dgram/verbs_dgram_av.c b/prov/verbs/src/ep_dgram/verbs_dgram_av.c
+index 441156b..7758005 100644
+--- a/prov/verbs/src/ep_dgram/verbs_dgram_av.c
++++ b/prov/verbs/src/ep_dgram/verbs_dgram_av.c
+@@ -37,6 +37,7 @@ const size_t fi_ibv_dgram_av_entry_size = sizeof(struct fi_ibv_dgram_av_entry);
+ static inline
+ int fi_ibv_dgram_av_fi_addr_cmp(void *addr1, void *addr2)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+     return (*(int *)addr1 < *(int *)addr2) ?
+ 		-1 :
+ 		(*(int *)addr1 > *(int *)addr2);
+@@ -48,6 +49,7 @@ int fi_ibv_dgram_one_at_a_time_hash(const int8_t *key, size_t len)
+ {
+ 	size_t i = 0;
+ 	int hash = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	while (i != len) {
+ 		hash += key[i++];
+@@ -64,6 +66,7 @@ int fi_ibv_dgram_one_at_a_time_hash(const int8_t *key, size_t len)
+ static inline
+ int fi_ibv_dgram_av_slot(const struct fi_ibv_dgram_av_entry *av_entry)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_dgram_one_at_a_time_hash(
+ 			(int8_t *)av_entry, fi_ibv_dgram_av_entry_size);
+ }
+@@ -72,12 +75,14 @@ static inline int fi_ibv_dgram_av_is_addr_valid(struct fi_ibv_dgram_av *av,
+ 						const void *addr)
+ {
+ 	const struct ofi_ib_ud_ep_name *check_name = addr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (check_name->lid > 0);
+ }
+ 
+ static inline
+ int fi_ibv_dgram_verify_av_insert(struct util_av *av, uint64_t flags)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if ((av->flags & FI_EVENT) && !av->eq) {
+ 		VERBS_WARN(FI_LOG_AV, "No EQ bound to AV\n");
+ 		return -FI_ENOEQ;
+@@ -101,6 +106,7 @@ static int fi_ibv_dgram_av_insert_addr(struct fi_ibv_dgram_av *av,
+ 	struct fi_ibv_domain *domain;
+ 	struct fi_ibv_dgram_av_entry *av_entry;
+ 	struct ibv_ah *ah;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	domain = container_of(&av->util_av.domain->domain_fid,
+ 			      struct fi_ibv_domain,
+@@ -192,6 +198,7 @@ static int fi_ibv_dgram_av_insert(struct fid_av *av_fid, const void *addr,
+ 	struct fi_ibv_dgram_av *av;
+ 	int ret, success_cnt = 0;
+ 	size_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(av_fid->fid.fclass == FI_CLASS_AV);
+ 	if (av_fid->fid.fclass != FI_CLASS_AV)
+@@ -231,6 +238,7 @@ static int fi_ibv_dgram_av_remove(struct fid_av *av_fid, fi_addr_t *fi_addr,
+ 	struct fi_ibv_dgram_av *av;
+ 	int ret, slot, i, index;
+ 	RbtIterator it;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(av_fid->fid.fclass == FI_CLASS_AV);
+ 	if (av_fid->fid.fclass != FI_CLASS_AV)
+@@ -285,6 +293,7 @@ int fi_ibv_dgram_av_lookup(struct fid_av *av_fid, fi_addr_t fi_addr,
+ {
+ 	struct fi_ibv_dgram_av *av;
+ 	struct fi_ibv_dgram_av_entry *av_entry;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(av_fid->fid.fclass == FI_CLASS_AV);
+ 	if (av_fid->fid.fclass != FI_CLASS_AV)
+@@ -307,6 +316,7 @@ static inline
+ const char *fi_ibv_dgram_av_straddr(struct fid_av *av, const void *addr,
+ 				    char *buf, size_t *len)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return ofi_straddr(buf, len, FI_ADDR_IB_UD, addr);
+ }
+ 
+@@ -317,6 +327,7 @@ static int fi_ibv_dgram_av_close(struct fid *av_fid)
+ 	RbtIterator iter;
+ 	fi_addr_t *fi_addr;
+ 	struct fi_ibv_dgram_av_entry *av_entry;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(av_fid->fclass == FI_CLASS_AV);
+ 	if (av_fid->fclass != FI_CLASS_AV)
+@@ -368,6 +379,7 @@ int fi_ibv_dgram_av_open(struct fid_domain *domain_fid, struct fi_av_attr *attr,
+ 	struct fi_ibv_domain *domain;
+ 	struct fi_ibv_dgram_av *av;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!attr || domain_fid->fid.fclass != FI_CLASS_DOMAIN)
+ 		return -FI_EINVAL;
+diff --git a/prov/verbs/src/ep_dgram/verbs_dgram_cntr.c b/prov/verbs/src/ep_dgram/verbs_dgram_cntr.c
+index 5ec0efc..87ad73a 100644
+--- a/prov/verbs/src/ep_dgram/verbs_dgram_cntr.c
++++ b/prov/verbs/src/ep_dgram/verbs_dgram_cntr.c
+@@ -40,6 +40,7 @@ int fi_ibv_dgram_cntr_open(struct fid_domain *domain_fid,
+ 	int ret;
+ 	struct fi_ibv_dgram_cntr *cntr;
+ 	struct fi_ibv_domain *domain;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cntr = calloc(1, sizeof(*cntr));
+ 	if (!cntr)
+diff --git a/prov/verbs/src/ep_dgram/verbs_dgram_cq.c b/prov/verbs/src/ep_dgram/verbs_dgram_cq.c
+index f340268..53e2737 100644
+--- a/prov/verbs/src/ep_dgram/verbs_dgram_cq.c
++++ b/prov/verbs/src/ep_dgram/verbs_dgram_cq.c
+@@ -41,6 +41,7 @@ int fi_ibv_dgram_cq_cntr_comp(struct util_cq *util_cq,
+ 	int ret = FI_SUCCESS;
+ 	struct fi_ibv_dgram_wr_entry *wr_entry =
+ 		(struct fi_ibv_dgram_wr_entry *)(uintptr_t)wc->wr_id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (util_cntr)
+ 		util_cntr->cntr_fid.ops->add(&util_cntr->cntr_fid, 1);
+@@ -84,6 +85,7 @@ int fi_ibv_dgram_cq_cntr_report_error(struct util_cq *util_cq,
+ 	struct fi_ibv_dgram_wr_entry *wr_entry =
+ 		(struct fi_ibv_dgram_wr_entry *)(uintptr_t)wc->wr_id;
+ 	struct util_cq_err_entry *err = calloc(1, sizeof(*err));
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!err) {
+ 		VERBS_WARN(FI_LOG_CQ, "Unable to allocate "
+ 				      "util_cq_err_entry\n");
+@@ -120,6 +122,7 @@ int fi_ibv_dgram_rx_cq_comp(struct util_cq *util_cq,
+ 			    struct util_cntr *util_cntr,
+ 			    struct ibv_wc *wc)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_dgram_cq_cntr_comp(util_cq, util_cntr, wc);
+ }
+ 
+@@ -129,6 +132,7 @@ int fi_ibv_dgram_tx_cq_comp(struct util_cq *util_cq,
+ {
+ 	struct fi_ibv_dgram_wr_entry *wr_entry =
+ 		(struct fi_ibv_dgram_wr_entry *)(uintptr_t)wc->wr_id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ofi_atomic_sub32(&wr_entry->hdr.ep->unsignaled_send_cnt,
+ 			 wr_entry->hdr.ep->max_unsignaled_send_cnt);
+@@ -142,6 +146,7 @@ int fi_ibv_dgram_tx_cq_report_error(struct util_cq *util_cq,
+ {
+ 	struct fi_ibv_dgram_wr_entry *wr_entry =
+ 		(struct fi_ibv_dgram_wr_entry *)(uintptr_t)wc->wr_id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ofi_atomic_sub32(&wr_entry->hdr.ep->unsignaled_send_cnt,
+ 			 wr_entry->hdr.ep->max_unsignaled_send_cnt);
+@@ -153,6 +158,7 @@ int fi_ibv_dgram_rx_cq_report_error(struct util_cq *util_cq,
+ 				    struct util_cntr *util_cntr,
+ 				    struct ibv_wc *wc)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_dgram_cq_cntr_report_error(util_cq, util_cntr, wc);
+ }
+ 
+@@ -162,6 +168,7 @@ int fi_ibv_dgram_tx_cq_no_action(struct util_cq *util_cq,
+ {
+ 	struct fi_ibv_dgram_wr_entry *wr_entry =
+ 		(struct fi_ibv_dgram_wr_entry *)(uintptr_t)wc->wr_id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	
+ 
+ 	ofi_atomic_sub32(&wr_entry->hdr.ep->unsignaled_send_cnt,
+@@ -181,6 +188,7 @@ int fi_ibv_dgram_rx_cq_no_action(struct util_cq *util_cq,
+ {
+ 	struct fi_ibv_dgram_wr_entry *wr_entry =
+ 		(struct fi_ibv_dgram_wr_entry *)(uintptr_t)wc->wr_id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fi_ibv_dgram_wr_entry_release(
+ 		&wr_entry->hdr.ep->grh_pool,
+@@ -197,6 +205,7 @@ void fi_ibv_dgram_cq_handle_wc(struct util_cq *util_cq,
+ {
+ 	struct fi_ibv_dgram_wr_entry *wr_entry =
+ 		(struct fi_ibv_dgram_wr_entry *)(uintptr_t)wc->wr_id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (OFI_LIKELY(wc->status == IBV_WC_SUCCESS))
+ 		wr_entry->hdr.suc_cb(util_cq, util_cntr, wc);
+ 	else
+@@ -210,9 +219,11 @@ void fi_ibv_dgram_recv_cq_progress(struct util_ep *util_ep)
+ 	struct ibv_wc *wcs = alloca(fi_ibv_gl_data.cqread_bunch_size *
+ 				    sizeof(struct ibv_wc));
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	cq = container_of(&util_ep->rx_cq->cq_fid, struct fi_ibv_dgram_cq,
+ 			  util_cq.cq_fid);
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	num_ent = ibv_poll_cq(cq->ibv_cq,
+ 			      fi_ibv_gl_data.cqread_bunch_size,
+ 			      wcs);
+@@ -229,6 +240,7 @@ void fi_ibv_dgram_send_cq_progress(struct util_ep *util_ep)
+ 	struct ibv_wc *wcs = alloca(fi_ibv_gl_data.cqread_bunch_size *
+ 				    sizeof(struct ibv_wc));
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	cq = container_of(&util_ep->tx_cq->cq_fid, struct fi_ibv_dgram_cq,
+ 			  util_cq.cq_fid);
+ 
+@@ -248,6 +260,7 @@ void fi_ibv_dgram_send_recv_cq_progress(struct util_ep *util_ep)
+ 	struct ibv_wc *wcs = alloca(fi_ibv_gl_data.cqread_bunch_size *
+ 				    sizeof(struct ibv_wc));
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	tx_cq = container_of(&util_ep->tx_cq->cq_fid, struct fi_ibv_dgram_cq,
+ 			     util_cq.cq_fid);
+ 	rx_cq = container_of(&util_ep->rx_cq->cq_fid, struct fi_ibv_dgram_cq,
+@@ -276,6 +289,7 @@ static inline
+ const char *fi_ibv_dgram_cq_strerror(struct fid_cq *cq_fid, int prov_errno,
+ 				     const void *err_data, char *buf, size_t len)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (buf && len)
+ 		strncpy(buf, ibv_wc_status_str(prov_errno), len);
+ 	return ibv_wc_status_str(prov_errno);
+@@ -286,6 +300,7 @@ static int fi_ibv_dgram_cq_close(fid_t cq_fid)
+ 	int ret = FI_SUCCESS;
+ 	struct fi_ibv_dgram_cq *cq;
+ 	struct fi_ibv_domain *domain;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cq = container_of(cq_fid, struct fi_ibv_dgram_cq, util_cq.cq_fid.fid);
+ 	if (!cq)
+@@ -338,6 +353,7 @@ int fi_ibv_dgram_cq_open(struct fid_domain *domain_fid, struct fi_cq_attr *attr,
+ 	struct fi_ibv_domain *domain;
+ 	int ret;
+ 	size_t cq_size;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cq = calloc(1, sizeof(*cq));
+ 	if (!cq)
+diff --git a/prov/verbs/src/ep_dgram/verbs_dgram_ep.c b/prov/verbs/src/ep_dgram/verbs_dgram_ep.c
+index 6bffba5..fc21374 100644
+--- a/prov/verbs/src/ep_dgram/verbs_dgram_ep.c
++++ b/prov/verbs/src/ep_dgram/verbs_dgram_ep.c
+@@ -40,6 +40,7 @@ static int fi_ibv_dgram_ep_enable(struct fid_ep *ep_fid)
+ 	int ret = FI_SUCCESS;
+ 	union ibv_gid gid;
+ 	uint16_t p_key;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(ep_fid->fid.fclass == FI_CLASS_EP);
+ 	if (ep_fid->fid.fclass != FI_CLASS_EP)
+@@ -180,6 +181,7 @@ static int fi_ibv_dgram_ep_enable(struct fid_ep *ep_fid)
+ static int fi_ibv_dgram_ep_control(fid_t ep_fid, int command, void *arg)
+ {
+ 	struct fi_ibv_dgram_ep *ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(ep_fid->fclass == FI_CLASS_EP);
+ 	if (ep_fid->fclass != FI_CLASS_EP)
+@@ -202,6 +204,7 @@ static int fi_ibv_dgram_ep_close(fid_t ep_fid)
+ 	struct fi_ibv_dgram_ep *ep;
+ 	struct fi_ibv_fabric *fab;
+ 	int ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(ep_fid->fclass == FI_CLASS_EP);
+ 	if (ep_fid->fclass != FI_CLASS_EP)
+@@ -242,6 +245,7 @@ static int fi_ibv_dgram_ep_bind(fid_t ep_fid, struct fid *bfid, uint64_t flags)
+ 	struct fi_ibv_dgram_av *av;
+ 	struct fi_ibv_dgram_eq *eq;
+ 	struct fi_ibv_dgram_cntr *cntr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(ep_fid->fclass == FI_CLASS_EP);
+ 	if (ep_fid->fclass != FI_CLASS_EP)
+@@ -304,6 +308,7 @@ static int fi_ibv_dgram_ep_setname(fid_t ep_fid, void *addr, size_t addrlen)
+ 	struct fi_ibv_dgram_ep *ep;
+ 	void *save_addr;
+ 	int ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ep_fid->fclass != FI_CLASS_EP)
+ 		return -FI_EINVAL;
+@@ -343,6 +348,7 @@ err:
+ static int fi_ibv_dgram_ep_getname(fid_t ep_fid, void *addr, size_t *addrlen)
+ {
+ 	struct fi_ibv_dgram_ep *ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ep_fid->fclass != FI_CLASS_EP)
+ 		return -FI_EINVAL;
+@@ -405,6 +411,7 @@ int fi_ibv_dgram_endpoint_open(struct fid_domain *domain_fid,
+ {
+ 	struct fi_ibv_dgram_ep *ep;
+ 	int ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(info && info->ep_attr && info->rx_attr && info->tx_attr);
+ 	assert(domain_fid);
+diff --git a/prov/verbs/src/ep_dgram/verbs_dgram_ep_msg.c b/prov/verbs/src/ep_dgram/verbs_dgram_ep_msg.c
+index d35832a..7ef5c59 100644
+--- a/prov/verbs/src/ep_dgram/verbs_dgram_ep_msg.c
++++ b/prov/verbs/src/ep_dgram/verbs_dgram_ep_msg.c
+@@ -37,6 +37,7 @@ void fi_ibv_dgram_recv_setup(struct fi_ibv_dgram_wr_entry *wr_entry,
+ 			     struct ibv_recv_wr *wr)
+ {
+ 	struct fi_ibv_dgram_ep *ep = wr_entry->hdr.ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (fi_ibv_dgram_is_completion(ep->ep_flags,
+ 				       wr_entry->hdr.flags)) {
+@@ -62,6 +63,7 @@ fi_ibv_dgram_recvmsg(struct fid_ep *ep_fid, const struct fi_msg *msg,
+ 	struct ibv_sge *sge;
+ 	struct fi_ibv_dgram_wr_entry *wr_entry;
+ 	ssize_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(ep_fid, struct fi_ibv_dgram_ep,
+ 			  util_ep.ep_fid.fid);
+@@ -111,6 +113,7 @@ fi_ibv_dgram_recvv(struct fid_ep *ep_fid, const struct iovec *iov, void **desc,
+ 		.addr		= src_addr,
+ 		.context	= context,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_dgram_recvmsg(ep_fid, &msg, 0);
+ }
+@@ -123,6 +126,7 @@ fi_ibv_dgram_recv(struct fid_ep *ep_fid, void *buf, size_t len,
+ 		.iov_base	= buf,
+ 		.iov_len	= len,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_dgram_recvv(ep_fid, &iov, &desc,
+ 				  1, src_addr, context);
+@@ -135,6 +139,7 @@ void fi_ibv_dgram_send_setup(struct fi_ibv_dgram_wr_entry *wr_entry,
+ {
+ 	struct fi_ibv_dgram_ep *ep = wr_entry->hdr.ep;
+ 	int32_t unsignaled_cnt = ofi_atomic_inc32(&ep->unsignaled_send_cnt) + 1;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (fi_ibv_dgram_is_completion(ep->ep_flags,
+ 				       wr_entry->hdr.flags)) {
+@@ -171,6 +176,7 @@ fi_ibv_dgram_sendmsg(struct fid_ep *ep_fid, const struct fi_msg *msg,
+ 	struct fi_ibv_dgram_av_entry *av_entry;
+ 	struct fi_ibv_dgram_av *av;
+ 	size_t total_len = 0, i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(!(flags & FI_FENCE));
+ 
+@@ -257,6 +263,7 @@ fi_ibv_dgram_sendv(struct fid_ep *ep_fid, const struct iovec *iov,
+ 		.addr		= dest_addr,
+ 		.context	= context,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_dgram_sendmsg(ep_fid, &msg, 0);
+ }
+@@ -279,6 +286,7 @@ fi_ibv_dgram_senddata(struct fid_ep *ep_fid, const void *buf,
+ 		.context	= context,
+ 		.data		= data,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_dgram_sendmsg(ep_fid, &msg, FI_REMOTE_CQ_DATA);
+ }
+@@ -291,6 +299,7 @@ fi_ibv_dgram_send(struct fid_ep *ep_fid, const void *buf, size_t len,
+ 		.iov_base	= (void *)buf,
+ 		.iov_len	= len,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_dgram_sendv(ep_fid, &iov, &desc,
+ 				  1, dest_addr, context);
+@@ -311,6 +320,7 @@ fi_ibv_dgram_injectdata(struct fid_ep *ep_fid, const void *buf, size_t len,
+ 		.addr		= dest_addr,
+ 		.data		= data,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_dgram_sendmsg(ep_fid, &msg, FI_INJECT |
+ 						  FI_REMOTE_CQ_DATA);
+@@ -320,6 +330,7 @@ static inline ssize_t
+ fi_ibv_dgram_inject(struct fid_ep *ep_fid, const void *buf,
+ 		    size_t len, fi_addr_t dest_addr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_dgram_injectdata(ep_fid, buf, len, 0, dest_addr);
+ }
+ 
+diff --git a/prov/verbs/src/ep_rdm/verbs_av_ep_rdm.c b/prov/verbs/src/ep_rdm/verbs_av_ep_rdm.c
+index 3a16edc..3fd6f46 100644
+--- a/prov/verbs/src/ep_rdm/verbs_av_ep_rdm.c
++++ b/prov/verbs/src/ep_rdm/verbs_av_ep_rdm.c
+@@ -48,6 +48,7 @@ fi_ibv_rdm_start_connection(struct fi_ibv_rdm_ep *ep,
+ 			    struct fi_ibv_rdm_conn *conn)
+ {
+ 	struct rdma_cm_id *id = NULL;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(ep->domain->rdm_cm->listener);
+ 
+ 	if (conn->state != FI_VERBS_CONN_ALLOCATED)
+@@ -86,6 +87,7 @@ fi_ibv_rdm_start_overall_disconnection(struct fi_ibv_rdm_av_entry *av_entry)
+ 	struct fi_ibv_rdm_conn *conn = NULL, *tmp = NULL;
+ 	ssize_t ret = FI_SUCCESS;
+ 	ssize_t err = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	pthread_mutex_lock(&av_entry->conn_lock);
+ 	HASH_ITER(hh, av_entry->conn_hash, conn, tmp) {
+@@ -109,6 +111,7 @@ fi_ibv_rdm_start_overall_disconnection(struct fi_ibv_rdm_av_entry *av_entry)
+ ssize_t fi_ibv_rdm_start_disconnection(struct fi_ibv_rdm_conn *conn)
+ {
+ 	ssize_t ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	VERBS_INFO(FI_LOG_AV, "Closing connection %p, state %d\n",
+ 		   conn, conn->state);
+@@ -141,6 +144,7 @@ ssize_t fi_ibv_rdm_start_disconnection(struct fi_ibv_rdm_conn *conn)
+ 
+ static inline int fi_ibv_rdm_av_is_valid_address(struct sockaddr_in *addr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return addr->sin_family == AF_INET ? 1 : 0;
+ }
+ 
+@@ -151,6 +155,7 @@ int fi_ibv_av_entry_alloc(struct fi_ibv_domain *domain,
+ 	int ret = ofi_memalign((void**)av_entry,
+ 			       FI_IBV_RDM_MEM_ALIGNMENT,
+ 			       sizeof (**av_entry));
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (ret)
+ 		return -ret;
+ 	memset((*av_entry), 0, sizeof(**av_entry));
+@@ -173,6 +178,7 @@ static int fi_ibv_rdm_av_insert(struct fid_av *av_fid, const void *addr,
+ 	int failed = 0;
+ 	int ret = 0;
+ 	int *fi_errors = context;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if((av->flags & FI_EVENT) && !av->eq)
+ 		return -FI_ENOEQ;
+@@ -296,6 +302,7 @@ static int fi_ibv_rdm_av_insertsvc(struct fid_av *av_fid, const char *node,
+ 	struct addrinfo addrinfo_hints;
+ 	struct addrinfo *result = NULL;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!node || !service) {
+ 		VERBS_WARN(FI_LOG_AV, "fi_av_insertsvc: %s provided\n",
+@@ -351,6 +358,7 @@ static int fi_ibv_rdm_av_insertsym(struct fid_av *av, const char *node,
+ 	char tmp_port[FI_NAME_MAX] = {0};
+ 	int hostlen, offset = 0, fmt;
+ 	size_t i, j;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!node || !service || node[0] == '\0') {
+ 		VERBS_WARN(FI_LOG_AV, "fi_av_insertsym: %s provided\n",
+@@ -415,6 +423,7 @@ static int fi_ibv_rdm_av_lookup(struct fid_av *av_fid, fi_addr_t fi_addr,
+ {
+ 	struct fi_ibv_av *av = container_of(av_fid, struct fi_ibv_av, av_fid);
+ 	struct fi_ibv_rdm_av_entry *av_entry = NULL;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (fi_addr == FI_ADDR_NOTAVAIL)
+ 		return -FI_EINVAL;
+@@ -438,6 +447,7 @@ static int fi_ibv_rdm_av_remove(struct fid_av *av_fid, fi_addr_t *fi_addr,
+ 	int ret = FI_SUCCESS;
+ 	int err = FI_SUCCESS;
+ 	size_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if(av->flags & FI_EVENT && !av->eq)
+ 		return -FI_ENOEQ;
+@@ -480,6 +490,7 @@ static int fi_ibv_rdm_av_remove(struct fid_av *av_fid, fi_addr_t *fi_addr,
+ static const char *fi_ibv_rdm_av_straddr(struct fid_av *av, const void *addr,
+ 					 char *buf, size_t *len)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return ofi_straddr(buf, len, FI_SOCKADDR, addr);
+ }
+ 
+@@ -495,12 +506,14 @@ static struct fi_ops_av fi_ibv_rdm_av_ops = {
+ 
+ struct fi_ops_av *fi_ibv_rdm_set_av_ops(void)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return &fi_ibv_rdm_av_ops;
+ }
+ 
+ static int fi_ibv_rdm_av_close(fid_t fid)
+ {
+ 	struct fi_ibv_av *av = container_of(fid, struct fi_ibv_av, av_fid.fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	free(av);
+ 	return 0;
+ }
+@@ -514,6 +527,7 @@ static struct fi_ops fi_ibv_fi_ops = {
+ static inline struct fi_ibv_rdm_av_entry *
+ fi_ibv_rdm_av_tbl_idx_to_av_entry(struct fi_ibv_rdm_ep *ep, fi_addr_t addr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (addr == FI_ADDR_UNSPEC) ? NULL :
+ 		ep->domain->rdm_cm->av_table[addr];
+ }
+@@ -521,6 +535,7 @@ fi_ibv_rdm_av_tbl_idx_to_av_entry(struct fi_ibv_rdm_ep *ep, fi_addr_t addr)
+ static inline struct fi_ibv_rdm_av_entry *
+ fi_ibv_rdm_av_map_addr_to_av_entry(struct fi_ibv_rdm_ep *ep, fi_addr_t addr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (struct fi_ibv_rdm_av_entry *)
+ 		(addr == FI_ADDR_UNSPEC ? NULL : (void *)(uintptr_t)addr);
+ }
+@@ -530,6 +545,7 @@ fi_ibv_rdm_av_entry_to_av_tbl_idx(struct fi_ibv_rdm_ep *ep,
+ 				  struct fi_ibv_rdm_av_entry *av_entry)
+ {
+ 	size_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	for (i = 0; i < ep->av->used; i++) {
+ 		if (ep->domain->rdm_cm->av_table[i] == av_entry) {
+@@ -544,6 +560,7 @@ static inline fi_addr_t
+ fi_ibv_rdm_av_entry_to_av_map_addr(struct fi_ibv_rdm_ep *ep,
+ 				   struct fi_ibv_rdm_av_entry *av_entry)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (av_entry == NULL) ? FI_ADDR_UNSPEC :
+ 	       (fi_addr_t)(uintptr_t)av_entry;
+ }
+@@ -552,6 +569,7 @@ static inline fi_addr_t
+ fi_ibv_rdm_conn_to_av_tbl_idx(struct fi_ibv_rdm_ep *ep,
+ 			      struct fi_ibv_rdm_conn *conn)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (conn == NULL)
+ 		return FI_ADDR_UNSPEC;
+ 	return fi_ibv_rdm_av_entry_to_av_tbl_idx(ep, conn->av_entry);
+@@ -561,6 +579,7 @@ static inline fi_addr_t
+ fi_ibv_rdm_conn_to_av_map_addr(struct fi_ibv_rdm_ep *ep,
+ 			       struct fi_ibv_rdm_conn *conn)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+     return fi_ibv_rdm_av_entry_to_av_map_addr(ep, conn->av_entry);
+ }
+ 
+@@ -573,6 +592,7 @@ fi_ibv_rdm_conn_entry_alloc(struct fi_ibv_rdm_av_entry *av_entry,
+ 			    struct fi_ibv_rdm_ep *ep)
+ {
+ 	struct fi_ibv_rdm_conn *conn;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ofi_memalign((void**) &conn,
+ 			 FI_IBV_RDM_MEM_ALIGNMENT,
+@@ -601,6 +621,7 @@ fi_ibv_rdm_av_map_addr_to_conn_add_new_conn(struct fi_ibv_rdm_ep *ep,
+ 	struct fi_ibv_rdm_conn *conn = NULL;
+ 	struct fi_ibv_rdm_av_entry *av_entry =
+ 		fi_ibv_rdm_av_map_addr_to_av_entry(ep, addr);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (av_entry) {
+ 		pthread_mutex_lock(&ep->domain->rdm_cm->cm_lock);
+ 		pthread_mutex_lock(&av_entry->conn_lock);
+@@ -622,6 +643,7 @@ fi_ibv_rdm_av_tbl_idx_to_conn_add_new_conn(struct fi_ibv_rdm_ep *ep,
+ 	struct fi_ibv_rdm_conn *conn = NULL;
+ 	struct fi_ibv_rdm_av_entry *av_entry =
+ 		fi_ibv_rdm_av_tbl_idx_to_av_entry(ep, addr);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (av_entry) {
+ 		pthread_mutex_lock(&ep->domain->rdm_cm->cm_lock);
+ 		pthread_mutex_lock(&av_entry->conn_lock);
+@@ -642,6 +664,7 @@ int fi_ibv_rdm_av_open(struct fid_domain *domain, struct fi_av_attr *attr,
+ 	struct fi_ibv_domain *fid_domain;
+ 	struct fi_ibv_av *av;
+ 	size_t count = 64;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fid_domain = container_of(domain, struct fi_ibv_domain, util_domain.domain_fid);
+ 
+diff --git a/prov/verbs/src/ep_rdm/verbs_cq_ep_rdm.c b/prov/verbs/src/ep_rdm/verbs_cq_ep_rdm.c
+index 8c95d2d..3e5baa8 100644
+--- a/prov/verbs/src/ep_rdm/verbs_cq_ep_rdm.c
++++ b/prov/verbs/src/ep_rdm/verbs_cq_ep_rdm.c
+@@ -45,6 +45,7 @@ static ssize_t fi_ibv_rdm_tagged_cq_readfrom(struct fid_cq *cq, void *buf,
+ 	size_t ret = 0;
+ 	struct fi_ibv_rdm_request *cq_entry =
+ 		count ? fi_ibv_rdm_take_first_from_cq(_cq) : NULL;;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	for ( ; cq_entry; cq_entry = (ret < count) ?
+ 				     fi_ibv_rdm_take_first_from_cq(_cq) : NULL) {
+@@ -86,6 +87,7 @@ static ssize_t fi_ibv_rdm_tagged_cq_read(struct fid_cq *cq, void *buf,
+ 		container_of(cq, struct fi_ibv_rdm_cq, cq_fid);
+ 	const size_t _count = _cq->read_bunch_size;
+ 	fi_addr_t addr[_count];
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_tagged_cq_readfrom(cq, buf, MIN(_count, count), addr);
+ }
+@@ -101,6 +103,7 @@ static ssize_t fi_ibv_rdm_cq_sreadfrom(struct fid_cq *cq, void *buf,
+ 	ssize_t ret = 0;
+ 	struct fi_ibv_rdm_cq *_cq = container_of(cq, struct fi_ibv_rdm_cq,
+ 						 cq_fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (_cq->wait_cond) {
+ 	case FI_CQ_COND_THRESHOLD:
+ 		threshold = MIN((uintptr_t) cond, threshold);
+@@ -141,6 +144,7 @@ static ssize_t fi_ibv_rdm_cq_sread(struct fid_cq *cq, void *buf, size_t count,
+ 	size_t rest		= count;
+ 	fi_addr_t addr[chunk];
+ 	ssize_t	ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	do {
+ 		ret = fi_ibv_rdm_cq_sreadfrom(cq, buf, chunk, addr, cond,
+@@ -160,6 +164,7 @@ fi_ibv_rdm_cq_strerror(struct fid_cq *eq, int prov_errno, const void *err_data,
+ 		       char *buf, size_t len)
+ {
+ 	/* TODO: */
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (buf && len)
+ 		strncpy(buf, ibv_wc_status_str(prov_errno), len);
+ 	return ibv_wc_status_str(prov_errno);
+@@ -176,6 +181,7 @@ fi_ibv_rdm_cq_readerr(struct fid_cq *cq_fid, struct fi_cq_err_entry *entry,
+ 
+ 	struct fi_ibv_rdm_request *err_request = 
+ 		fi_ibv_rdm_take_first_from_errcq(cq);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (err_request) {
+ 		entry->op_context = err_request->context;
+@@ -227,6 +233,7 @@ static int fi_ibv_rdm_cq_close(fid_t fid)
+ {
+ 	struct fi_ibv_rdm_cq *cq =
+ 		container_of(fid, struct fi_ibv_rdm_cq, cq_fid.fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if(cq->ep) {
+ 		return -FI_EBUSY;
+@@ -252,6 +259,7 @@ static void fi_ibv_rdm_cq_read_context_entry(struct fi_ibv_rdm_request *cq_entry
+ 					     int i, void *buf)
+ {
+ 	struct fi_cq_entry *entry = buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry[i].op_context = cq_entry->context;
+ }
+@@ -260,6 +268,7 @@ static void fi_ibv_rdm_cq_read_msg_entry(struct fi_ibv_rdm_request *cq_entry,
+ 					 int i, void *buf)
+ {
+ 	struct fi_cq_msg_entry *entry = buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry[i].op_context = cq_entry->context;
+ 	entry[i].flags = (cq_entry->comp_flags & ~FI_COMPLETION);
+@@ -270,6 +279,7 @@ static void fi_ibv_rdm_cq_read_data_entry(struct fi_ibv_rdm_request *cq_entry,
+ 					  int i, void *buf)
+ {
+ 	struct fi_cq_data_entry *entry = buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry[i].op_context = cq_entry->context;
+ 	entry[i].flags = (cq_entry->comp_flags & ~FI_COMPLETION);
+@@ -283,6 +293,7 @@ static void fi_ibv_rdm_cq_read_tagged_entry(struct fi_ibv_rdm_request *cq_entry,
+ 					    int i, void *buf)
+ {
+ 	struct fi_cq_tagged_entry *entry = buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry[i].op_context = cq_entry->context;
+ 	entry[i].flags = (cq_entry->comp_flags & ~FI_COMPLETION);
+@@ -298,6 +309,7 @@ int fi_ibv_rdm_cq_open(struct fid_domain *domain, struct fi_cq_attr *attr,
+ {
+ 	struct fi_ibv_rdm_cq *_cq;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_cq = calloc(1, sizeof *_cq);
+ 	if (!_cq)
+diff --git a/prov/verbs/src/ep_rdm/verbs_ep_rdm.c b/prov/verbs/src/ep_rdm/verbs_ep_rdm.c
+index 89f4e4e..1476b3b 100644
+--- a/prov/verbs/src/ep_rdm/verbs_ep_rdm.c
++++ b/prov/verbs/src/ep_rdm/verbs_ep_rdm.c
+@@ -58,6 +58,7 @@ fi_ibv_rdm_find_max_inline(struct ibv_pd *pd, struct ibv_context *context)
+ 	assert(cq);
+ 	int max_inline = 2;
+ 	int rst = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	memset(&qp_attr, 0, sizeof(qp_attr));
+ 	qp_attr.send_cq = cq;
+@@ -130,6 +131,7 @@ static int fi_ibv_rdm_ep_bind(struct fid *fid, struct fid *bfid, uint64_t flags)
+ 	struct fi_ibv_av *av;
+ 	struct fi_ibv_rdm_cntr *cntr;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(fid, struct fi_ibv_rdm_ep, ep_fid.fid);
+ 	ret = ofi_ep_bind_valid(&fi_ibv_prov, bfid, flags);
+@@ -211,6 +213,7 @@ static ssize_t fi_ibv_rdm_cancel(fid_t fid, void *ctx)
+ 	struct fi_ibv_rdm_ep *ep_rdm = 
+ 		container_of(fid, struct fi_ibv_rdm_ep, ep_fid);
+ 	int err = -FI_ENOENT;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!ep_rdm->domain)
+ 		return -EBADF;
+@@ -268,6 +271,7 @@ static int fi_ibv_rdm_getopt(fid_t fid, int level, int optname, void *optval,
+ {
+ 	struct fi_ibv_rdm_ep *ep_rdm = 
+ 		container_of(fid, struct fi_ibv_rdm_ep, ep_fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (level != FI_OPT_ENDPOINT) {
+ 		return -FI_ENOPROTOOPT;
+@@ -288,6 +292,7 @@ static int fi_ibv_rdm_setopt(fid_t fid, int level, int optname,
+ {
+ 	struct fi_ibv_rdm_ep *ep_rdm =
+ 		container_of(fid, struct fi_ibv_rdm_ep, ep_fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (level != FI_OPT_ENDPOINT) {
+ 		return -FI_ENOPROTOOPT;
+@@ -303,6 +308,7 @@ static int fi_ibv_rdm_setopt(fid_t fid, int level, int optname,
+ 
+ static int fi_ibv_rdm_tagged_control(fid_t fid, int command, void *arg)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (command) {
+ 	case FI_ENABLE:
+ 		return 0;
+@@ -328,6 +334,7 @@ static int fi_ibv_rdm_ep_match(struct slist_entry *item,
+ 			       const void *ep)
+ {
+ 	const struct fi_ibv_rdm_ep *ep_obj = (struct fi_ibv_rdm_ep *)ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (item == &ep_obj->list_entry);
+ }
+ 
+@@ -340,6 +347,7 @@ static int fi_ibv_rdm_ep_close(fid_t fid)
+ 	struct fi_ibv_rdm_av_entry *av_entry = NULL, *tmp = NULL;
+ 	struct slist_entry *item, *prev_item;
+ 	struct fi_ibv_rdm_conn *conn = NULL;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ep->fi_scq)
+ 		ep->fi_scq->ep = NULL;
+@@ -522,6 +530,7 @@ int fi_ibv_rdm_open_ep(struct fid_domain *domain, struct fi_info *info,
+ 	struct fi_ibv_domain *_domain = 
+ 		container_of(domain, struct fi_ibv_domain, util_domain.domain_fid);
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!info || !info->ep_attr || !info->domain_attr ||
+ 	    strncmp(_domain->verbs->device->name, info->domain_attr->name,
+diff --git a/prov/verbs/src/ep_rdm/verbs_queuing.h b/prov/verbs/src/ep_rdm/verbs_queuing.h
+index 95b6985..5162678 100644
+--- a/prov/verbs/src/ep_rdm/verbs_queuing.h
++++ b/prov/verbs/src/ep_rdm/verbs_queuing.h
+@@ -41,6 +41,7 @@ static inline void
+ fi_ibv_rdm_move_to_cq(struct fi_ibv_rdm_cq *cq,
+ 		      struct fi_ibv_rdm_request *request)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("move_to_cq: ", request, FI_LOG_DEBUG);
+ 	dlist_insert_tail(&request->queue_entry, &cq->request_cq);
+ }
+@@ -48,6 +49,7 @@ fi_ibv_rdm_move_to_cq(struct fi_ibv_rdm_cq *cq,
+ static inline void
+ fi_ibv_rdm_remove_from_cq(struct fi_ibv_rdm_request *request)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("remove_from_cq: ", request, FI_LOG_DEBUG);
+ 	dlist_remove(&request->queue_entry);
+ }
+@@ -55,6 +57,7 @@ fi_ibv_rdm_remove_from_cq(struct fi_ibv_rdm_request *request)
+ static inline struct fi_ibv_rdm_request *
+ fi_ibv_rdm_take_first_from_cq(struct fi_ibv_rdm_cq *cq)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (cq && !dlist_empty(&cq->request_cq)) {
+ 		struct fi_ibv_rdm_request *entry =
+ 			container_of(cq->request_cq.next,
+@@ -69,6 +72,7 @@ static inline void
+ fi_ibv_rdm_move_to_errcq(struct fi_ibv_rdm_cq *cq,
+ 			 struct fi_ibv_rdm_request *request, ssize_t err)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	request->state.err = llabs(err);
+ 	FI_IBV_RDM_DBG_REQUEST("move_to_errcq: ", request, FI_LOG_DEBUG);
+ 	assert(request->context);
+@@ -79,6 +83,7 @@ fi_ibv_rdm_move_to_errcq(struct fi_ibv_rdm_cq *cq,
+ static inline void
+ fi_ibv_rdm_remove_from_errcq(struct fi_ibv_rdm_request *request)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("remove_from_errcq: ", request, FI_LOG_DEBUG);
+ 	dlist_remove(&request->queue_entry);
+ }
+@@ -86,6 +91,7 @@ fi_ibv_rdm_remove_from_errcq(struct fi_ibv_rdm_request *request)
+ static inline struct fi_ibv_rdm_request *
+ fi_ibv_rdm_take_first_from_errcq(struct fi_ibv_rdm_cq *cq)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (cq && !dlist_empty(&cq->request_errcq)) {
+ 		struct fi_ibv_rdm_request *entry =
+ 			container_of(cq->request_errcq.next,
+@@ -100,6 +106,7 @@ static inline void
+ fi_ibv_rdm_move_to_unexpected_queue(struct fi_ibv_rdm_request *request,
+ 				    struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("move_to_unexpected_queue: ", request,
+ 				FI_LOG_DEBUG);
+ 	dlist_insert_tail(&request->queue_entry, &ep->fi_ibv_rdm_unexp_queue);
+@@ -111,6 +118,7 @@ fi_ibv_rdm_move_to_unexpected_queue(struct fi_ibv_rdm_request *request,
+ static inline void
+ fi_ibv_rdm_remove_from_unexp_queue(struct fi_ibv_rdm_request *request)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("remove_from_unexpected_queue: ", request,
+ 				FI_LOG_DEBUG);
+ 	dlist_remove(&request->queue_entry);
+@@ -119,6 +127,7 @@ fi_ibv_rdm_remove_from_unexp_queue(struct fi_ibv_rdm_request *request)
+ static inline struct fi_ibv_rdm_request *
+ fi_ibv_rdm_take_first_from_unexp_queue(struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!dlist_empty(&ep->fi_ibv_rdm_unexp_queue)) {
+ 		struct fi_ibv_rdm_request *entry =
+ 			container_of(ep->fi_ibv_rdm_unexp_queue.next,
+@@ -133,6 +142,7 @@ static inline void
+ fi_ibv_rdm_move_to_posted_queue(struct fi_ibv_rdm_request *request,
+ 				struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("move_to_posted_queue: ", request, FI_LOG_DEBUG);
+ 	dlist_insert_tail(&request->queue_entry, &ep->fi_ibv_rdm_posted_queue);
+ 	ofi_atomic_inc32(&ep->posted_recvs);
+@@ -147,6 +157,7 @@ static inline int32_t
+ fi_ibv_rdm_remove_from_posted_queue(struct fi_ibv_rdm_request *request,
+ 				    struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("remove_from_posted_queue: ", request,
+ 				FI_LOG_DEBUG);
+ 	dlist_remove(&request->queue_entry);
+@@ -156,6 +167,7 @@ fi_ibv_rdm_remove_from_posted_queue(struct fi_ibv_rdm_request *request,
+ static inline struct fi_ibv_rdm_request *
+ fi_ibv_rdm_take_first_from_posted_queue(struct fi_ibv_rdm_ep* ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!dlist_empty(&ep->fi_ibv_rdm_posted_queue)) {
+ 		struct fi_ibv_rdm_request *entry =
+ 			container_of(ep->fi_ibv_rdm_posted_queue.next,
+@@ -169,6 +181,7 @@ fi_ibv_rdm_take_first_from_posted_queue(struct fi_ibv_rdm_ep* ep)
+ static inline int
+ fi_ibv_rdm_move_to_postponed_queue(struct fi_ibv_rdm_request *request)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("move_to_postponed_queue: ", request, 
+ 				FI_LOG_DEBUG);
+ 	assert(request && request->minfo.conn);
+@@ -199,6 +212,7 @@ static inline void
+ fi_ibv_rdm_remove_from_multi_recv_list(struct fi_ibv_rdm_multi_request *request,
+ 				       struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	dlist_remove(&request->list_entry);
+ }
+ 
+@@ -206,6 +220,7 @@ static inline void
+ fi_ibv_rdm_add_to_multi_recv_list(struct fi_ibv_rdm_multi_request *request,
+ 				  struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	dlist_insert_tail(&request->list_entry,
+ 			  &ep->fi_ibv_rdm_multi_recv_list);
+ }
+@@ -213,6 +228,7 @@ fi_ibv_rdm_add_to_multi_recv_list(struct fi_ibv_rdm_multi_request *request,
+ static inline struct fi_ibv_rdm_multi_request *
+ fi_ibv_rdm_take_first_from_multi_recv_list(struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!dlist_empty(&ep->fi_ibv_rdm_multi_recv_list)) {
+ 		struct fi_ibv_rdm_multi_request *entry;
+ 		dlist_pop_front(&ep->fi_ibv_rdm_multi_recv_list,
+@@ -226,6 +242,7 @@ fi_ibv_rdm_take_first_from_multi_recv_list(struct fi_ibv_rdm_ep *ep)
+ static inline void
+ fi_ibv_rdm_remove_from_postponed_queue(struct fi_ibv_rdm_request *request)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_DBG_REQUEST("remove_from_postponed_queue: ", request,
+ 				FI_LOG_DEBUG);
+ 
+@@ -257,6 +274,7 @@ fi_ibv_rdm_remove_from_postponed_queue(struct fi_ibv_rdm_request *request)
+ static inline struct fi_ibv_rdm_request *
+ fi_ibv_rdm_take_first_from_postponed_queue(struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!dlist_empty(&ep->fi_ibv_rdm_postponed_queue)) {
+ 		struct fi_ibv_rdm_postponed_entry *entry = 
+ 			container_of(ep->fi_ibv_rdm_postponed_queue.next,
+@@ -283,6 +301,7 @@ fi_ibv_rdm_take_first_match_from_postponed_queue(dlist_func_t *match,
+ 						 struct fi_ibv_rdm_ep *ep)
+ {
+ 	struct dlist_entry *i, *j;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	dlist_foreach((&ep->fi_ibv_rdm_postponed_queue), i) {
+ 		 struct fi_ibv_rdm_postponed_entry *entry = 
+ 			container_of(i, struct fi_ibv_rdm_postponed_entry,
+diff --git a/prov/verbs/src/ep_rdm/verbs_rdm.h b/prov/verbs/src/ep_rdm/verbs_rdm.h
+index 670726a..10b870b 100644
+--- a/prov/verbs/src/ep_rdm/verbs_rdm.h
++++ b/prov/verbs/src/ep_rdm/verbs_rdm.h
+@@ -434,6 +434,7 @@ struct fi_conn_priv_params {
+ static inline void
+ fi_ibv_rdm_set_buffer_status(struct fi_ibv_rdm_buf *buff, uint16_t status)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	buff->service_data.status = status;
+ 	if (status == BUF_STATUS_FREE) {
+ 		buff->service_data.pkt_len = 0;
+@@ -443,6 +444,7 @@ fi_ibv_rdm_set_buffer_status(struct fi_ibv_rdm_buf *buff, uint16_t status)
+ static inline int
+ fi_ibv_rdm_buffer_check_seq_num(struct fi_ibv_rdm_buf *buff, uint16_t seq_num)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	VERBS_DBG(FI_LOG_EP_DATA, "seq num: %d <-> %d\n",
+ 		buff->service_data.seq_num, seq_num);
+ 	return (seq_num == buff->service_data.seq_num);
+@@ -452,6 +454,7 @@ static inline uintptr_t
+ fi_ibv_rdm_get_remote_addr(struct fi_ibv_rdm_conn *conn,
+ 			   struct fi_ibv_rdm_buf *local_sbuff)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (uintptr_t) (conn->remote_rbuf_mem_reg +
+ 			    ((char *)local_sbuff - conn->sbuf_mem_reg));
+ }
+@@ -462,6 +465,7 @@ fi_ibv_rdm_push_buff_pointer(char *area_start, size_t area_size,
+ {
+ 	char *buff = (char*)(*rdm_buff);
+ 	char *buff_tmp = buff + offset;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	VERBS_DBG(FI_LOG_EP_DATA, "old_pointer: %p\n", buff);
+ 
+@@ -476,6 +480,7 @@ static inline void
+ fi_ibv_rdm_push_sbuff_head(struct fi_ibv_rdm_conn *conn, 
+ 			   struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	fi_ibv_rdm_push_buff_pointer(conn->sbuf_mem_reg,
+ 				     ep->buff_len * ep->n_buffs,
+ 				     &conn->sbuf_head, ep->buff_len);
+@@ -485,6 +490,7 @@ static inline void
+ fi_ibv_rdm_push_rmabuff_head(struct fi_ibv_rdm_conn *conn,
+ 			     struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	fi_ibv_rdm_push_buff_pointer(conn->rmabuf_mem_reg,
+ 				     ep->buff_len * ep->n_buffs,
+ 				     &conn->rmabuf_head, ep->buff_len);
+@@ -495,6 +501,7 @@ fi_ibv_rdm_get_rmabuf(struct fi_ibv_rdm_conn *conn,
+ 		      struct fi_ibv_rdm_ep *ep, uint16_t seq_num)
+ {
+ 	char *rmabuf = conn->rmabuf_mem_reg + (seq_num * ep->buff_len);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	VERBS_DBG(FI_LOG_EP_DATA, "rma buf %d\n", seq_num);
+ 	return (struct fi_ibv_rdm_buf *) rmabuf;
+ }
+@@ -505,6 +512,7 @@ fi_ibv_rdm_get_rbuf(struct fi_ibv_rdm_conn *conn,
+ {
+ 	struct fi_ibv_rdm_buf *rbuf = (struct fi_ibv_rdm_buf *)
+ 		(conn->rbuf_mem_reg + (seq_num * ep->buff_len));
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	VERBS_DBG(FI_LOG_EP_DATA, "recv buf %d <-> %d\n",
+ 		seq_num, rbuf->service_data.seq_num);
+@@ -517,6 +525,7 @@ fi_ibv_rdm_get_sbuf(struct fi_ibv_rdm_conn *conn,
+ 		    struct fi_ibv_rdm_ep *ep, uint16_t seq_num)
+ {
+ 	char *sbuf = conn->sbuf_mem_reg + (seq_num * ep->buff_len);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	VERBS_DBG(FI_LOG_EP_DATA, "send buf %d\n", seq_num);
+ 	return (struct fi_ibv_rdm_buf *)sbuf;
+ }
+@@ -526,6 +535,7 @@ fi_ibv_rdm_buffer_lists_init(struct fi_ibv_rdm_conn *conn,
+ 			     struct fi_ibv_rdm_ep *ep)
+ {
+ 	int i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	conn->sbuf_head = (struct fi_ibv_rdm_buf *)conn->sbuf_mem_reg;
+ 	conn->rbuf_head = (struct fi_ibv_rdm_buf *)conn->rbuf_mem_reg;
+@@ -552,6 +562,7 @@ fi_ibv_rdm_buffer_lists_init(struct fi_ibv_rdm_conn *conn,
+ 
+ static inline void fi_ibv_rdm_cntr_inc(struct fi_ibv_rdm_cntr *cntr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (cntr) {
+ 		cntr->fid.ops->add(&cntr->fid, 1);
+ 	}
+@@ -559,6 +570,7 @@ static inline void fi_ibv_rdm_cntr_inc(struct fi_ibv_rdm_cntr *cntr)
+ 
+ static inline void fi_ibv_rdm_cntr_inc_err(struct fi_ibv_rdm_cntr *cntr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (cntr) {
+ 		cntr->err_count++;
+ 	}
+@@ -593,6 +605,7 @@ int fi_ibv_rdm_prepare_rma_request(struct fi_ibv_rdm_request *request,
+ static inline struct fi_ibv_rdm_buf *
+ fi_ibv_rdm_get_sbuf_head(struct fi_ibv_rdm_conn *conn, struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(conn);
+ 
+ #if ENABLE_DEBUG
+@@ -666,6 +679,7 @@ static inline void *
+ fi_ibv_rdm_rma_get_buf_head(struct fi_ibv_rdm_conn *conn,
+ 			    struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(conn);
+ 	void *buf = NULL;
+ 
+@@ -680,12 +694,14 @@ fi_ibv_rdm_rma_get_buf_head(struct fi_ibv_rdm_conn *conn,
+ static inline int
+ fi_ibv_rdm_check_connection(struct fi_ibv_rdm_conn *conn)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (conn->state == FI_VERBS_CONN_ESTABLISHED);
+ }
+ 
+ static inline struct fi_ibv_rdm_buf *
+ fi_ibv_rdm_prepare_send_resources(struct fi_ibv_rdm_conn *conn)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (fi_ibv_rdm_check_connection(conn) &&
+ 		!TSEND_RESOURCES_IS_BUSY(conn, conn->ep)) ?
+ 		fi_ibv_rdm_get_sbuf_head(conn, conn->ep) : NULL;
+@@ -694,6 +710,7 @@ fi_ibv_rdm_prepare_send_resources(struct fi_ibv_rdm_conn *conn)
+ static inline void *
+ fi_ibv_rdm_rma_prepare_resources(struct fi_ibv_rdm_conn *conn)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (fi_ibv_rdm_check_connection(conn) &&
+ 		!TSEND_RESOURCES_IS_BUSY(conn, conn->ep)) ?
+ 		fi_ibv_rdm_rma_get_buf_head(conn, conn->ep) : NULL;
+@@ -703,6 +720,7 @@ static inline int
+ fi_ibv_rdm_process_send_wc(struct fi_ibv_rdm_ep *ep,
+ 			   struct ibv_wc *wc)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (wc->status != IBV_WC_SUCCESS) {
+ 		return 1;
+ 	}
+@@ -732,6 +750,7 @@ static inline void
+ fi_ibv_rdm_process_err_send_wc(struct fi_ibv_rdm_ep *ep,
+ 			       struct ibv_wc *wc)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (wc->status != IBV_WC_SUCCESS) {
+ 		struct fi_ibv_rdm_conn *conn;
+ 		if (FI_IBV_RDM_CHECK_SERVICE_WR_FLAG(wc->wr_id)) {
+diff --git a/prov/verbs/src/ep_rdm/verbs_rdm_cm.c b/prov/verbs/src/ep_rdm/verbs_rdm_cm.c
+index 9a9d7c4..a640b8c 100644
+--- a/prov/verbs/src/ep_rdm/verbs_rdm_cm.c
++++ b/prov/verbs/src/ep_rdm/verbs_rdm_cm.c
+@@ -45,6 +45,7 @@ static struct ibv_mr *
+ fi_ibv_rdm_alloc_and_reg(struct fi_ibv_rdm_ep *ep,
+ 			 void **buf, size_t size)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!ofi_memalign((void**)buf,
+ 			  FI_IBV_RDM_BUF_ALIGNMENT, size)) {
+ 		memset(*buf, 0, size);
+@@ -59,6 +60,7 @@ static ssize_t
+ fi_ibv_rdm_dereg_and_free(struct ibv_mr **mr, char **buff)
+ {
+ 	ssize_t ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (ibv_dereg_mr(*mr)) {
+ 		VERBS_INFO_ERRNO(FI_LOG_AV, "ibv_dereg_mr failed\n", errno);
+ 		ret = -errno;
+@@ -80,6 +82,7 @@ fi_ibv_rdm_batch_repost_receives(struct fi_ibv_rdm_conn *conn,
+ 	struct ibv_recv_wr wr[num_to_post];
+ 	struct ibv_sge sge[num_to_post];
+ 	int i, last = num_to_post - 1;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	/* IBV_WR_SEND opcode specific */
+ 	assert((num_to_post % ep->n_buffs) == 0);
+@@ -144,6 +147,7 @@ ssize_t fi_ibv_rdm_repost_receives(struct fi_ibv_rdm_conn *conn,
+ 
+ 	ssize_t rest = num_to_post - (num_to_post % ep->n_buffs);
+ 	ssize_t count = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	while (rest) {
+ 		const ssize_t batch = MIN(rest, batch_size);
+ 		const ssize_t ret =
+@@ -168,6 +172,7 @@ fi_ibv_rdm_prepare_conn_memory(struct fi_ibv_rdm_ep *ep,
+ {
+ 	assert(conn->s_mr == NULL);
+ 	assert(conn->r_mr == NULL);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	const size_t size = ep->buff_len * ep->n_buffs;
+ 	conn->s_mr = fi_ibv_rdm_alloc_and_reg(ep,
+@@ -224,6 +229,7 @@ static inline void
+ fi_ibv_rdm_tagged_init_qp_attributes(struct ibv_qp_init_attr *qp_attr,
+ 				     struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(ep->scq && ep->rcq);
+ 	memset(qp_attr, 0, sizeof(*qp_attr));
+ 	qp_attr->send_cq = ep->scq;
+@@ -243,6 +249,7 @@ fi_ibv_rdm_pack_cm_params(struct rdma_conn_param *cm_params,
+ 			  const struct fi_ibv_rdm_conn *conn,
+ 			  const struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	memset(cm_params, 0, sizeof(struct rdma_conn_param));
+ 	cm_params->responder_resources = 2;
+ 	cm_params->initiator_depth = 2;
+@@ -269,6 +276,7 @@ fi_ibv_rdm_unpack_cm_params(const struct rdma_conn_param *cm_param,
+ 			    struct fi_ibv_rdm_ep *ep)
+ {
+ 	const struct fi_conn_priv_params *priv = cm_param->private_data;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (conn->cm_role == FI_VERBS_CM_SELF) {
+ 		if (conn->r_mr && conn->s_mr) {
+@@ -306,6 +314,7 @@ fi_ibv_rdm_process_addr_resolved(const struct rdma_cm_event *event,
+ 	struct ibv_qp_init_attr qp_attr;
+ 	struct fi_ibv_rdm_conn *conn = event->id->context;
+ 	struct rdma_cm_id *id = event->id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	VERBS_INFO(FI_LOG_AV, "ADDR_RESOLVED conn %p, addr %s:%u\n",
+ 		   conn, inet_ntoa(conn->addr.sin_addr),
+@@ -364,6 +373,7 @@ fi_ibv_rdm_process_connect_request(const struct rdma_cm_event *event,
+ 	struct rdma_cm_id *id = event->id;
+ 	struct fi_ibv_rdm_conn *conn;
+ 	ssize_t ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	char *p = (char *) event->param.conn.private_data;
+ 
+@@ -522,6 +532,7 @@ fi_ibv_rdm_process_route_resolved(const struct rdma_cm_event *event,
+ 	ssize_t ret = FI_SUCCESS;
+ 	struct rdma_conn_param cm_params;
+ 	struct fi_conn_priv_params priv;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fi_ibv_rdm_pack_cm_params(&cm_params, &priv, conn, ep);
+ 
+@@ -546,6 +557,7 @@ fi_ibv_rdm_process_event_established(const struct rdma_cm_event *event,
+ {
+ 	struct fi_ibv_rdm_conn *conn =
+ 		(struct fi_ibv_rdm_conn *)event->id->context;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (conn->state != FI_VERBS_CONN_STARTED &&
+ 	    conn->cm_role != FI_VERBS_CM_SELF)
+@@ -578,6 +590,7 @@ ssize_t fi_ibv_rdm_overall_conn_cleanup(struct fi_ibv_rdm_av_entry *av_entry)
+ 	struct fi_ibv_rdm_conn *conn = NULL, *tmp = NULL;
+ 	ssize_t ret = FI_SUCCESS;
+ 	ssize_t err = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	pthread_mutex_lock(&av_entry->conn_lock);
+ 	HASH_ITER(hh, av_entry->conn_hash, conn, tmp) {
+@@ -597,6 +610,7 @@ ssize_t fi_ibv_rdm_conn_cleanup(struct fi_ibv_rdm_conn *conn)
+ {
+ 	ssize_t ret = FI_SUCCESS;
+ 	ssize_t err = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	VERBS_DBG(FI_LOG_AV, "conn %p, exp = %zu unexp = %zu\n", conn,
+ 		     conn->exp_counter, conn->unexp_counter);
+@@ -665,6 +679,7 @@ static int fi_ibv_rdm_poll_cq(struct fi_ibv_rdm_ep *ep)
+ 	int i, ret = 0;
+ 	const int wc_count = ep->fi_scq->read_bunch_size;
+ 	struct ibv_wc wc[wc_count];
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = ibv_poll_cq(ep->scq, wc_count, wc);
+ 	for (i = 0; i < ret; ++i)
+@@ -680,6 +695,7 @@ fi_ibv_rdm_process_event_disconnected(const struct rdma_cm_event *event,
+ {
+ 	struct fi_ibv_rdm_conn *conn = event->id->context;
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep->num_active_conns--;
+ 	conn->state = FI_VERBS_CONN_CLOSED;
+@@ -705,6 +721,7 @@ fi_ibv_rdm_process_event_rejected(const struct rdma_cm_event *event,
+ 	struct fi_ibv_rdm_conn *conn = event->id->context;
+ 	ssize_t ret = FI_SUCCESS;
+ 	const int *pdata = event->param.conn.private_data;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ep->is_closing) {
+ 		conn->state = FI_VERBS_CONN_CLOSED;
+@@ -754,6 +771,7 @@ fi_ibv_rdm_process_timewait_exit_event(const struct rdma_cm_event *event,
+ {
+ 	struct fi_ibv_rdm_conn *conn = event->id->context;
+ 	struct fi_ibv_rdm_request *request = NULL;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	VERBS_INFO(FI_LOG_AV, "Handle TIMEWAIT Exit event "
+ 		   "from conn %p, addr %s:%u\n",
+@@ -773,6 +791,7 @@ static ssize_t
+ fi_ibv_rdm_process_event(const struct rdma_cm_event *event, struct fi_ibv_rdm_ep *ep)
+ {
+ 	ssize_t ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (event->event) {
+ 	case RDMA_CM_EVENT_ADDR_RESOLVED:
+ 		ret = fi_ibv_rdm_process_addr_resolved(event, ep);
+@@ -822,6 +841,7 @@ print_err:
+ ssize_t fi_ibv_rdm_cm_progress(struct fi_ibv_rdm_ep *ep)
+ {
+ 	ssize_t ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	do {
+ 		struct rdma_cm_event event_copy;
+diff --git a/prov/verbs/src/ep_rdm/verbs_rdm_cntr.c b/prov/verbs/src/ep_rdm/verbs_rdm_cntr.c
+index a84313b..9b8733c 100644
+--- a/prov/verbs/src/ep_rdm/verbs_rdm_cntr.c
++++ b/prov/verbs/src/ep_rdm/verbs_rdm_cntr.c
+@@ -40,6 +40,7 @@ static uint64_t fi_ibv_rdm_cntr_read(struct fid_cntr *cntr_fid)
+ {
+ 	struct fi_ibv_rdm_cntr *cntr =
+ 		container_of(cntr_fid, struct fi_ibv_rdm_cntr, fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return cntr->value;
+ }
+ 
+@@ -47,6 +48,7 @@ static uint64_t fi_ibv_rdm_cntr_readerr(struct fid_cntr *cntr_fid)
+ {
+ 	struct fi_ibv_rdm_cntr *cntr =
+ 		container_of(cntr_fid, struct fi_ibv_rdm_cntr, fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return cntr->err_count;
+ }
+ 
+@@ -54,6 +56,7 @@ static int fi_ibv_rdm_cntr_add(struct fid_cntr *cntr_fid, uint64_t value)
+ {
+ 	struct fi_ibv_rdm_cntr *cntr =
+ 		container_of(cntr_fid, struct fi_ibv_rdm_cntr, fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	cntr->value += value;
+ 	return 0;
+ }
+@@ -62,6 +65,7 @@ static int fi_ibv_rdm_cntr_set(struct fid_cntr *cntr_fid, uint64_t value)
+ {
+ 	struct fi_ibv_rdm_cntr *cntr =
+ 		container_of(cntr_fid, struct fi_ibv_rdm_cntr, fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	cntr->value = value;
+ 	return 0;
+ }
+@@ -70,6 +74,7 @@ static int fi_ibv_rdm_cntr_adderr(struct fid_cntr *cntr_fid, uint64_t value)
+ {
+ 	struct fi_ibv_rdm_cntr *cntr =
+ 		container_of(cntr_fid, struct fi_ibv_rdm_cntr, fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	cntr->err_count += value;
+ 	return 0;
+ }
+@@ -78,6 +83,7 @@ static int fi_ibv_rdm_cntr_seterr(struct fid_cntr *cntr_fid, uint64_t value)
+ {
+ 	struct fi_ibv_rdm_cntr *cntr =
+ 		container_of(cntr_fid, struct fi_ibv_rdm_cntr, fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	cntr->err_count = value;
+ 	return 0;
+ }
+@@ -98,6 +104,7 @@ static int fi_ibv_rdm_cntr_close(struct fid *fid)
+ 	struct fi_ibv_rdm_cntr *cntr =
+ 		container_of(fid, struct fi_ibv_rdm_cntr, fid);
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (ofi_atomic_get32(&cntr->ep_ref) > 0) {
+ 		return -FI_EBUSY;
+ 	}
+@@ -122,6 +129,7 @@ int fi_rbv_rdm_cntr_open(struct fid_domain *domain, struct fi_cntr_attr *attr,
+ 	struct fi_ibv_domain *dom =
+ 		container_of(domain, struct fi_ibv_domain, util_domain.domain_fid);
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (attr) {
+ 		switch (attr->events) {
+ 		case FI_CNTR_EVENTS_COMP:
+diff --git a/prov/verbs/src/ep_rdm/verbs_rdm_msg.c b/prov/verbs/src/ep_rdm/verbs_rdm_msg.c
+index 75d45d9..c364af3 100644
+--- a/prov/verbs/src/ep_rdm/verbs_rdm_msg.c
++++ b/prov/verbs/src/ep_rdm/verbs_rdm_msg.c
+@@ -42,6 +42,7 @@ static ssize_t fi_ibv_rdm_recvmsg(struct fid_ep *ep, const struct fi_msg *msg,
+ 	ssize_t ret = FI_SUCCESS;
+ 	struct fi_ibv_rdm_ep *ep_rdm =
+ 		container_of(ep, struct fi_ibv_rdm_ep, ep_fid);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (msg->iov_count > 1) {
+ 		assert(0);
+@@ -103,6 +104,7 @@ fi_ibv_rdm_recvv(struct fid_ep *ep, const struct iovec *iov,
+ 		.context = context,
+ 		.data = 0
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_recvmsg(ep, &msg, 0ULL);
+ }
+@@ -115,6 +117,7 @@ fi_ibv_rdm_recv(struct fid_ep *ep, void *buf, size_t len, void *desc,
+ 		.iov_base = buf,
+ 		.iov_len = len
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_rdm_recvv(ep, &iov, &desc, 1, src_addr, context);
+ }
+ 
+@@ -137,6 +140,7 @@ static ssize_t fi_ibv_rdm_sendmsg(struct fid_ep *ep, const struct fi_msg *msg,
+ 		.imm = (uint32_t) 0,
+ 		.stype = IBV_RDM_SEND_TYPE_GEN,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	switch (msg->iov_count) {
+ 	case 1:
+@@ -182,6 +186,7 @@ static ssize_t fi_ibv_rdm_sendv(struct fid_ep *ep, const struct iovec *iov,
+ 		.data = 0
+ 	};
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_rdm_sendmsg(ep, &msg, GET_TX_COMP(ep_rdm));
+ }
+ 
+@@ -192,6 +197,7 @@ static ssize_t fi_ibv_rdm_send(struct fid_ep *ep, const void *buf, size_t len,
+ 		.iov_base = (void *)buf,
+ 		.iov_len = len
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_rdm_sendv(ep, &iov, &desc, 1, dest_addr, context);
+ }
+ 
+@@ -202,6 +208,7 @@ static ssize_t fi_ibv_rdm_inject(struct fid_ep *ep_fid, const void *buf,
+ 		container_of(ep_fid, struct fi_ibv_rdm_ep, ep_fid);
+ 	struct fi_ibv_rdm_conn *conn = ep->av->addr_to_conn(ep, dest_addr);
+ 	const size_t size = len + sizeof(struct fi_ibv_rdm_header);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (len > ep->rndv_threshold) {
+ 	    abort();
+@@ -263,6 +270,7 @@ static ssize_t fi_ibv_rdm_senddata(struct fid_ep *ep, const void *buf,
+ 				   size_t len, void *desc, uint64_t data,
+ 				   fi_addr_t dest_addr, void *context)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(0);
+ 	return -FI_ENOSYS;
+ }
+@@ -271,6 +279,7 @@ static ssize_t fi_ibv_rdm_injectdata(struct fid_ep *ep, const void *buf,
+ 				     size_t len, uint64_t data,
+ 				     fi_addr_t dest_addr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(0);
+ 	return -FI_ENOSYS;
+ }
+diff --git a/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm.c b/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm.c
+index 0906535..54252f1 100644
+--- a/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm.c
++++ b/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm.c
+@@ -64,6 +64,7 @@ fi_ibv_rdm_tagged_prepare_send_request(struct fi_ibv_rdm_request *request,
+ 		return !res;
+ 	}
+ #endif // ENABLE_DEBUG
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	request->sbuf = fi_ibv_rdm_prepare_send_resources(request->minfo.conn);
+ 	return !!request->sbuf;
+ }
+@@ -72,6 +73,7 @@ int
+ fi_ibv_rdm_prepare_rma_request(struct fi_ibv_rdm_request *request,
+ 				struct fi_ibv_rdm_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	request->rmabuf =
+ 		fi_ibv_rdm_rma_prepare_resources(request->minfo.conn);
+ 	return !!request->rmabuf;
+@@ -80,6 +82,7 @@ fi_ibv_rdm_prepare_rma_request(struct fi_ibv_rdm_request *request,
+ static int fi_ibv_rdm_tagged_getname(fid_t fid, void *addr, size_t * addrlen)
+ {
+ 	struct fi_ibv_rdm_ep *ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (fid->fclass == FI_CLASS_EP) {
+  		ep = container_of(fid, struct fi_ibv_rdm_ep, ep_fid);
+@@ -110,6 +113,7 @@ fi_ibv_rdm_tagged_recvmsg(struct fid_ep *ep_fid, const struct fi_msg_tagged *msg
+ 	struct fi_ibv_rdm_ep *ep_rdm =
+ 		container_of(ep_fid, struct fi_ibv_rdm_ep, ep_fid);
+ 	struct fi_ibv_rdm_conn *conn = ep_rdm->av->addr_to_conn(ep_rdm, msg->addr);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (msg->iov_count > 1) {
+ 		assert(0);
+@@ -186,6 +190,7 @@ fi_ibv_rdm_tagged_recvv(struct fid_ep *ep_fid, const struct iovec *iov, void **d
+ 		.context = context,
+ 		.data = 0
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_tagged_recvmsg(ep_fid, &msg, 0ULL);
+ }
+@@ -199,6 +204,7 @@ static ssize_t fi_ibv_rdm_tagged_recvfrom(struct fid_ep *ep_fid, void *buf,
+ 		.iov_base = buf,
+ 		.iov_len = len
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_tagged_recvv(ep_fid, &iov, &desc, 1, src_addr, tag,
+ 					ignore, context);
+@@ -212,6 +218,7 @@ fi_ibv_rdm_tagged_inject(struct fid_ep *fid, const void *buf, size_t len,
+ 		container_of(fid, struct fi_ibv_rdm_ep, ep_fid);
+ 	struct fi_ibv_rdm_conn *conn = ep->av->addr_to_conn(ep, dest_addr);
+ 	const size_t size = len + sizeof(struct fi_ibv_rdm_header);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (len > ep->rndv_threshold) {
+ 		abort();
+@@ -289,6 +296,7 @@ static ssize_t fi_ibv_rdm_tagged_senddatato(struct fid_ep *fid, const void *buf,
+ 		.imm = (uint32_t) data,
+ 		.stype = IBV_RDM_SEND_TYPE_GEN
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_send_common(&sdata);
+ }
+@@ -298,6 +306,7 @@ static ssize_t fi_ibv_rdm_tagged_sendto(struct fid_ep *fid, const void *buf,
+ 					fi_addr_t dest_addr, uint64_t tag,
+ 					void *context)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_rdm_tagged_senddatato(fid, buf, len, desc, 0, dest_addr,
+ 					    tag, context);
+ }
+@@ -321,6 +330,7 @@ static ssize_t fi_ibv_rdm_tagged_sendmsg(struct fid_ep *ep,
+ 		.imm = (uint32_t) 0,
+ 		.stype = IBV_RDM_SEND_TYPE_GEN,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	switch (msg->iov_count) {
+ 	case 1:
+@@ -368,6 +378,7 @@ static ssize_t fi_ibv_rdm_tagged_sendv(struct fid_ep *ep,
+ 		.context = context,
+ 		.data = 0
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_tagged_sendmsg(ep, &msg, GET_TX_COMP(ep_rdm));
+ }
+@@ -409,6 +420,7 @@ fi_ibv_rdm_tagged_release_remote_sbuff(struct fi_ibv_rdm_conn *conn,
+ 		.length = sizeof(conn->sbuf_ack_status),
+ 		.lkey = conn->ack_mr->lkey,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr.wr_id = FI_IBV_RDM_PACK_SERVICE_WR(conn);
+ 	wr.sg_list = &sge;
+@@ -441,6 +453,7 @@ fi_ibv_rdm_process_recv(struct fi_ibv_rdm_ep *ep, struct fi_ibv_rdm_conn *conn,
+ 	struct fi_ibv_rdm_request *request = NULL;
+ 
+ 	int pkt_type = FI_IBV_RDM_GET_PKTTYPE(rbuf->header.service_tag);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (pkt_type == FI_IBV_RDM_RNDV_ACK_PKT) {
+ 		memcpy(&request, &rbuf->payload, sizeof(request));
+@@ -507,6 +520,7 @@ void check_and_repost_receives(struct fi_ibv_rdm_ep *ep,
+ 				struct fi_ibv_rdm_conn *conn)
+ {
+ 	int32_t recv_preposted;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if ((recv_preposted = ofi_atomic_dec32(
+ 			&conn->av_entry->recv_preposted)) < ep->recv_preposted_threshold) {
+ 		int to_post = ep->rq_wr_depth - recv_preposted;
+@@ -533,6 +547,7 @@ fi_ibv_rdm_process_recv_wc(struct fi_ibv_rdm_ep *ep, struct ibv_wc *wc)
+ 
+ 	struct fi_ibv_rdm_buf *rbuf = 
+ 		fi_ibv_rdm_get_rbuf(conn, ep, conn->recv_processed);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	FI_IBV_PREFETCH_ADDR(rbuf);
+ 
+@@ -633,6 +648,7 @@ int fi_ibv_rdm_tagged_poll_recv(struct fi_ibv_rdm_ep *ep)
+ 	int ret = 0;
+ 	int err = 0;
+ 	int i = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	do {
+ 		ret = ibv_poll_cq(ep->rcq, wc_count, wc);
+@@ -679,6 +695,7 @@ static inline int fi_ibv_rdm_tagged_poll_send(struct fi_ibv_rdm_ep *ep)
+ 	const int wc_count = ep->fi_scq->read_bunch_size;
+ 	struct ibv_wc wc[wc_count];
+ 	int ret = 0, err = 0, i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ofi_atomic_get32(&ep->posted_sends) > 0) {
+ 		do {
+@@ -721,6 +738,7 @@ wc_error:
+ int fi_ibv_rdm_tagged_poll(struct fi_ibv_rdm_ep *ep)
+ {
+ 	int ret = fi_ibv_rdm_tagged_poll_send(ep);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	/* Only already posted sends should be processed during EP closing */
+ 	if (ret || ep->is_closing) {
+ 		return ret;
+diff --git a/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm_states.c b/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm_states.c
+index 8dbbcce..0a09cf2 100644
+--- a/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm_states.c
++++ b/prov/verbs/src/ep_rdm/verbs_tagged_ep_rdm_states.c
+@@ -84,6 +84,7 @@ fi_ibv_rdm_init_send_request(struct fi_ibv_rdm_request *request, void *data)
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
+ 	ssize_t ret;
+ 	struct fi_ibv_rdm_send_start_data *p = data;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	request->minfo.conn = p->conn;
+ 	request->minfo.tag = p->tag;
+ 	request->minfo.is_tagged = p->is_tagged;
+@@ -125,6 +126,7 @@ static ssize_t
+ fi_ibv_rdm_eager_send_ready(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_SEND_POSTPONED);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED);
+@@ -217,6 +219,7 @@ fi_ibv_rdm_eager_send_lc(struct fi_ibv_rdm_request *request,
+ 				void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_SEND_WAIT4LC ||
+ 	       request->state.eager == FI_IBV_STATE_EAGER_READY_TO_FREE);
+@@ -250,6 +253,7 @@ static ssize_t
+ fi_ibv_rdm_rndv_rts_send_ready(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_SEND_POSTPONED);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_SEND_WAIT4SEND);
+@@ -339,6 +343,7 @@ fi_ibv_rdm_rndv_rts_lc(struct fi_ibv_rdm_request *request,
+ 			      void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(((request->state.eager == FI_IBV_STATE_EAGER_SEND_WAIT4LC) &&
+ 		(request->state.rndv == FI_IBV_STATE_RNDV_SEND_WAIT4ACK)) ||
+@@ -374,6 +379,7 @@ fi_ibv_rdm_rndv_end(struct fi_ibv_rdm_request *request,
+ 			   void *data)
+ {
+ 	struct fi_ibv_recv_got_pkt_preprocess_data *p = data;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
+ 
+@@ -420,6 +426,7 @@ fi_ibv_rdm_copy_unexp_request(struct fi_ibv_rdm_request *request,
+ 			      struct fi_ibv_rdm_request *unexp)
+ {
+ 	ssize_t ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (request->len && (request->len < unexp->len)) {
+ 		VERBS_INFO(FI_LOG_EP_DATA,
+ 			   "RECV TRUNCATE, unexp len %" PRIu64 ", "
+@@ -474,6 +481,7 @@ fi_ibv_rdm_repost_multi_recv(struct fi_ibv_rdm_request *request,
+ {
+ 	struct fi_ibv_rdm_multi_request *parent;
+ 	struct fi_ibv_rdm_request *prepost;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!(prepost = util_buf_alloc(ep->fi_ibv_rdm_request_pool))) {
+ 		VERBS_WARN(FI_LOG_EP_DATA, "Unable to allocate memory for "
+@@ -532,6 +540,7 @@ fi_ibv_rdm_try_unexp_recv(struct fi_ibv_rdm_request *request,
+ 	struct fi_ibv_rdm_request *found_request = NULL;
+ 	struct fi_ibv_rdm_request *repost = NULL;
+ 	ssize_t ret = FI_ENOMSG;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	do {
+ 		found_entry =
+@@ -595,6 +604,7 @@ fi_ibv_rdm_init_recv_request(struct fi_ibv_rdm_request *request, void *data)
+ 
+ 	ssize_t ret = FI_SUCCESS;
+ 	struct fi_ibv_rdm_tagged_recv_start_data *p = data;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (p->peek_data.flags & FI_MULTI_RECV) {
+ 		request->parent =
+@@ -652,6 +662,7 @@ static ssize_t
+ fi_ibv_rdm_tagged_peek_request(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_BEGIN);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED);
+ 
+@@ -740,6 +751,7 @@ static ssize_t
+ fi_ibv_rdm_init_unexp_recv_request(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_BEGIN);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED);
+@@ -826,6 +838,7 @@ fn:
+ static ssize_t
+ fi_ibv_rdm_eager_recv_got_pkt(struct fi_ibv_rdm_request *request, void *data)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
+ 	struct fi_ibv_recv_got_pkt_preprocess_data *p = data;
+ 	struct fi_ibv_rdm_buf *rbuf = p->rbuf;
+@@ -968,6 +981,7 @@ fi_ibv_rdm_eager_recv_process_unexp_pkt(struct fi_ibv_rdm_request *request,
+ 					void *data)
+ {
+ 	struct fi_ibv_recv_got_pkt_process_data *p = data;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
+ 
+@@ -1005,6 +1019,7 @@ static ssize_t
+ fi_ibv_rdm_tagged_recv_claim(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_RECV_WAIT4RECV);
+ 	assert((request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED) ||
+ 	       (request->state.rndv == FI_IBV_STATE_RNDV_RECV_WAIT4RES));
+@@ -1024,6 +1039,7 @@ static ssize_t
+ fi_ibv_rdm_eager_recv_discard(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_RECV_WAIT4RECV);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED);
+ 	assert(data == NULL);
+@@ -1071,6 +1087,7 @@ fi_ibv_rdm_rndv_read_reg_mr(struct fi_ibv_rdm_ep *ep,
+ 	request->rndv.mr = ibv_reg_mr(ep->domain->pd, request->dest_buf,
+ 				      request->len, mr_access);
+ #endif /* HAVE_VERBS_EXP_H */
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!request->rndv.mr) {
+ 		VERBS_INFO_ERRNO(FI_LOG_EP_DATA, "failed ibv_reg_mr",
+@@ -1084,6 +1101,7 @@ fi_ibv_rdm_rndv_read_reg_mr(struct fi_ibv_rdm_ep *ep,
+ static ssize_t
+ fi_ibv_rdm_rndv_recv_post_read(struct fi_ibv_rdm_request *request, void *data)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_RECV_END);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_RECV_WAIT4RES);
+@@ -1160,6 +1178,7 @@ static ssize_t
+ fi_ibv_rdm_rndv_recv_read_lc(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	struct fi_ibv_rdm_tagged_send_completed_data *p = data;
+ 	struct fi_ibv_rdm_conn *conn = request->minfo.conn;
+@@ -1255,6 +1274,7 @@ static ssize_t
+ fi_ibv_rdm_rndv_recv_ack_lc(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_SEND_WAIT4LC ||
+ 	       request->state.eager == FI_IBV_STATE_EAGER_READY_TO_FREE);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_RECV_END);
+@@ -1280,6 +1300,7 @@ static ssize_t
+ fi_ibv_rdm_rma_init_request(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_BEGIN);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED);
+ 
+@@ -1338,6 +1359,7 @@ static ssize_t
+ fi_ibv_rdm_rma_inject_request(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_RMA_INJECT);
+ 	assert(request->state.rndv  == FI_IBV_STATE_RNDV_NOT_USED);
+ 
+@@ -1390,6 +1412,7 @@ static ssize_t
+ fi_ibv_rdm_rma_post_ready(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert((request->state.eager == FI_IBV_STATE_EAGER_RMA_INITIALIZED &&
+ 		request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED) ||
+ 	       (request->state.eager == FI_IBV_STATE_EAGER_RMA_POSTPONED &&
+@@ -1462,6 +1485,7 @@ static ssize_t
+ fi_ibv_rdm_rma_inject_lc(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_RMA_INJECT_WAIT4LC);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED);
+ 
+@@ -1487,6 +1511,7 @@ static ssize_t
+ fi_ibv_rdm_rma_buffered_lc(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_RMA_WAIT4LC);
+ 	assert(request->state.rndv == FI_IBV_STATE_RNDV_NOT_USED);
+@@ -1532,6 +1557,7 @@ fi_ibv_rdm_rma_zerocopy_lc(struct fi_ibv_rdm_request *request, void *data)
+ {
+ 	ssize_t ret = FI_SUCCESS;
+ 	FI_IBV_RDM_HNDL_REQ_LOG_IN();
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(request->state.eager == FI_IBV_STATE_EAGER_RMA_INITIALIZED ||
+ 		(request->state.eager == FI_IBV_STATE_EAGER_RMA_POSTPONED));
+@@ -1579,6 +1605,7 @@ fi_ibv_rdm_rma_zerocopy_lc(struct fi_ibv_rdm_request *request, void *data)
+ static ssize_t
+ fi_ibv_rdm_req_hndl_err(struct fi_ibv_rdm_request *request, void *data)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	VERBS_INFO(FI_LOG_EP_DATA,
+ 		"\t> IN\t< eager_state = %s, rndv_state = %s, len = %lu\n",
+ 		fi_ibv_rdm_req_eager_state_to_str(request->state.eager),
+@@ -1591,6 +1618,7 @@ fi_ibv_rdm_req_hndl_err(struct fi_ibv_rdm_request *request, void *data)
+ 
+ ssize_t fi_ibv_rdm_req_hndls_init(void)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	size_t i, j, k;
+ 
+ 	for (i = 0; i < FI_IBV_STATE_EAGER_COUNT; ++i) {
+@@ -1726,6 +1754,7 @@ ssize_t fi_ibv_rdm_req_hndls_init(void)
+ ssize_t fi_ibv_rdm_req_hndls_clean(void)
+ {
+ 	size_t i, j, k;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	for (i = 0; i < FI_IBV_STATE_EAGER_COUNT; ++i) {
+ 		for (j = 0; j < FI_IBV_STATE_RNDV_COUNT; ++j) {
+ 			for (k = 0; k < FI_IBV_EVENT_COUNT; ++k) {
+@@ -1740,6 +1769,7 @@ ssize_t
+ fi_ibv_rdm_req_hndl(struct fi_ibv_rdm_request * request,
+ 		    enum fi_ibv_rdm_request_event event, void *data)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	VERBS_DBG(FI_LOG_EP_DATA, "\t%p, eager_state = %s, rndv_state = %s, event = %s\n",
+ 		  request,
+ 		  fi_ibv_rdm_req_eager_state_to_str(request->state.eager),
+@@ -1756,6 +1786,7 @@ fi_ibv_rdm_req_hndl(struct fi_ibv_rdm_request * request,
+ char *
+ fi_ibv_rdm_req_eager_state_to_str(enum fi_ibv_rdm_request_eager_state state)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (state) {
+ 	case FI_IBV_STATE_EAGER_BEGIN:
+ 		return "STATE_EAGER_BEGIN";
+@@ -1803,6 +1834,7 @@ fi_ibv_rdm_req_eager_state_to_str(enum fi_ibv_rdm_request_eager_state state)
+ 
+ char *fi_ibv_rdm_req_rndv_state_to_str(enum fi_ibv_rdm_request_rndv_state state)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (state) {
+ 	case FI_IBV_STATE_RNDV_NOT_USED:
+ 		return "STATE_RNDV_NOT_USED";
+@@ -1840,6 +1872,7 @@ char *fi_ibv_rdm_req_rndv_state_to_str(enum fi_ibv_rdm_request_rndv_state state)
+ 
+ char *fi_ibv_rdm_event_to_str(enum fi_ibv_rdm_request_event event)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (event) {
+ 	case FI_IBV_EVENT_SEND_START:
+ 		return "EVENT_SEND_START";
+diff --git a/prov/verbs/src/ep_rdm/verbs_utils.c b/prov/verbs/src/ep_rdm/verbs_utils.c
+index 56b41fa..d185baf 100644
+--- a/prov/verbs/src/ep_rdm/verbs_utils.c
++++ b/prov/verbs/src/ep_rdm/verbs_utils.c
+@@ -45,12 +45,14 @@ size_t rdm_buffer_size(size_t buf_send_size)
+ 	size_t size = buf_send_size + FI_IBV_RDM_BUFF_SERVICE_DATA_SIZE +
+ 		sizeof(struct fi_ibv_rdm_header) + FI_IBV_RDM_BUF_ALIGNMENT;
+ 	size -= (size % FI_IBV_RDM_BUF_ALIGNMENT);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return size;
+ }
+ 
+ int fi_ibv_rdm_req_match(struct dlist_entry *item, const void *other)
+ {
+ 	const struct fi_ibv_rdm_request *req = other;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return (item == &req->queue_entry);
+ }
+ 
+@@ -60,6 +62,7 @@ int fi_ibv_rdm_req_match_by_info(struct dlist_entry *item, const void *info)
+ 		container_of(item, struct fi_ibv_rdm_request, queue_entry);
+ 
+ 	const struct fi_ibv_rdm_minfo *minfo = info;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return	(
+ 			((request->minfo.conn == NULL) ||
+@@ -82,6 +85,7 @@ int fi_ibv_rdm_req_match_by_info2(struct dlist_entry *item, const void *info)
+ 		container_of(item, struct fi_ibv_rdm_request, queue_entry);
+ 
+ 	const struct fi_ibv_rdm_minfo *minfo = info;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return	(
+ 			((minfo->conn == NULL) ||
+@@ -106,6 +110,7 @@ int fi_ibv_rdm_req_match_by_info3(struct dlist_entry *item, const void *info)
+ 	const struct fi_ibv_rdm_tagged_peek_data *peek_data = info;
+ 	const void *context = (peek_data->flags & FI_CLAIM) ?
+ 		peek_data->context : NULL;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return ((request->context == context) && 
+ 		fi_ibv_rdm_req_match_by_info2(item, &peek_data->minfo));
+@@ -120,6 +125,7 @@ int fi_ibv_rdm_postponed_process(struct dlist_entry *postponed_item,
+ 	    container_of(postponed_item,
+ 			 struct fi_ibv_rdm_postponed_entry, queue_entry);
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!dlist_empty(&postponed_entry->conn->postponed_requests_head)) {
+ 		struct dlist_entry *req_entry = 
+ 			postponed_entry->conn->postponed_requests_head.next;
+@@ -165,6 +171,7 @@ void fi_ibv_rdm_conn_init_cm_role(struct fi_ibv_rdm_conn *conn,
+ 	const int addr_cmp = memcmp(&conn->addr, &ep->my_addr,
+ 				    FI_IBV_RDM_DFLT_ADDRLEN);
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (addr_cmp < 0) {
+ 		conn->cm_role = FI_VERBS_CM_ACTIVE;
+ 	} else if (addr_cmp > 0) {
+@@ -179,6 +186,7 @@ void fi_ibv_rdm_clean_queues(struct fi_ibv_rdm_ep *ep)
+ 	struct fi_ibv_rdm_request *request;
+ 	struct fi_ibv_rdm_multi_request *multi_request;
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	while ((request = fi_ibv_rdm_take_first_from_unexp_queue(ep))) {
+ 		if (request->unexp_rbuf) {
+ 			util_buf_release(ep->fi_ibv_rdm_extra_buffers_pool,
+@@ -247,6 +255,7 @@ fi_ibv_rdm_send_common(struct fi_ibv_rdm_send_start_data* sdata)
+ {
+ 	struct fi_ibv_rdm_request *request =
+ 		util_buf_alloc(sdata->ep_rdm->fi_ibv_rdm_request_pool);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (OFI_UNLIKELY(!request))
+ 		return -FI_EAGAIN;
+ 	request->ep = sdata->ep_rdm;
+@@ -278,6 +287,7 @@ rdm_trecv_second_event(struct fi_ibv_rdm_request *request,
+ 			struct fi_ibv_rdm_ep *ep)
+ {
+ 	ssize_t ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	switch (request->state.rndv)
+ 	{
+diff --git a/prov/verbs/src/fi_verbs.c b/prov/verbs/src/fi_verbs.c
+index f041f73..65e70aa 100644
+--- a/prov/verbs/src/fi_verbs.c
++++ b/prov/verbs/src/fi_verbs.c
+@@ -90,6 +90,7 @@ struct util_prov fi_ibv_util_prov = {
+ 
+ int fi_ibv_sockaddr_len(struct sockaddr *addr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!addr)
+ 		return 0;
+ 
+@@ -108,6 +109,7 @@ int fi_ibv_sockaddr_len(struct sockaddr *addr)
+ int fi_ibv_rdm_cm_bind_ep(struct fi_ibv_rdm_cm *cm, struct fi_ibv_rdm_ep *ep)
+ {
+ 	char my_ipoib_addr_str[INET6_ADDRSTRLEN];
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	assert(cm->ec && cm->listener);
+ 
+@@ -155,6 +157,7 @@ int fi_ibv_get_rdma_rai(const char *node, const char *service, uint64_t flags,
+ 	struct rdma_addrinfo rai_hints, *_rai;
+ 	struct rdma_addrinfo **rai_current;
+ 	int ret = fi_ibv_fi_to_rai(hints, flags, &rai_hints);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ret)
+ 		goto out;
+@@ -213,6 +216,7 @@ int fi_ibv_create_ep(const char *node, const char *service,
+ {
+ 	struct rdma_addrinfo *_rai = NULL;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_ibv_get_rdma_rai(node, service, flags, hints, &_rai);
+ 	if (ret) {
+@@ -241,6 +245,7 @@ err1:
+ 
+ void fi_ibv_destroy_ep(struct rdma_addrinfo *rai, struct rdma_cm_id **id)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	rdma_freeaddrinfo(rai);
+ 	rdma_destroy_ep(*id);
+ }
+@@ -252,6 +257,7 @@ void fi_ibv_destroy_ep(struct rdma_addrinfo *rai, struct rdma_cm_id **id)
+ static int fi_ibv_signal_send(struct fi_ibv_msg_ep *ep, struct ibv_send_wr *wr)
+ {
+ 	struct fi_ibv_msg_epe *epe;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fastlock_acquire(&ep->scq->lock);
+ 	if (VERBS_SIGNAL_SEND(ep)) {
+@@ -276,6 +282,7 @@ static int fi_ibv_reap_comp(struct fi_ibv_msg_ep *ep)
+ 	struct fi_ibv_wce *wce = NULL;
+ 	int got_wc = 0;
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fastlock_acquire(&ep->scq->lock);
+ 	while (ofi_atomic_get32(&ep->comp_pending) > 0) {
+@@ -316,6 +323,7 @@ fi_ibv_send(struct fi_ibv_msg_ep *ep, struct ibv_send_wr *wr, void *context)
+ {
+ 	struct fi_ibv_wre *wre = NULL;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (ep->scq) {
+ 		if (wr->send_flags & IBV_SEND_SIGNALED) {
+@@ -366,6 +374,7 @@ ssize_t fi_ibv_send_buf(struct fi_ibv_msg_ep *ep, struct ibv_send_wr *wr,
+ 			const void *buf, size_t len, void *desc, void *context)
+ {
+ 	struct ibv_sge sge = fi_ibv_init_sge(buf, len, desc);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr->sg_list = &sge;
+ 	wr->num_sge = 1;
+@@ -377,6 +386,7 @@ ssize_t fi_ibv_send_buf_inline(struct fi_ibv_msg_ep *ep, struct ibv_send_wr *wr,
+ 			       const void *buf, size_t len)
+ {
+ 	struct ibv_sge sge = fi_ibv_init_sge_inline(buf, len);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr->sg_list = &sge;
+ 	wr->num_sge = 1;
+@@ -389,6 +399,7 @@ ssize_t fi_ibv_send_iov_flags(struct fi_ibv_msg_ep *ep, struct ibv_send_wr *wr,
+ 			      void *context, uint64_t flags)
+ {
+ 	size_t len = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!desc)
+ 		fi_ibv_set_sge_iov_inline(wr->sg_list, iov, count, len);
+@@ -414,6 +425,7 @@ static int fi_ibv_param_define(const char *param_name, const char *param_str,
+ 	size_t param_str_sz = strlen(param_str);
+ 	size_t begin_def_section_sz = strlen(begin_def_section);
+ 	size_t end_def_section_sz = strlen(end_def_section);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (param_default != NULL) {
+ 		switch (type) {
+@@ -468,6 +480,7 @@ static int fi_ibv_dbg_query_qp_attr(struct ibv_qp *qp)
+ 	struct ibv_qp_init_attr attr = { 0 };
+ 	struct ibv_qp_attr qp_attr = { 0 };
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = ibv_query_qp(qp, &qp_attr, IBV_QP_TIMEOUT | IBV_QP_RETRY_CNT |
+ 			   IBV_QP_RNR_RETRY | IBV_QP_MIN_RNR_TIMER, &attr);
+@@ -487,6 +500,7 @@ static int fi_ibv_dbg_query_qp_attr(struct ibv_qp *qp)
+ #else
+ static int fi_ibv_dbg_query_qp_attr(struct ibv_qp *qp)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return 0;
+ }
+ #endif
+@@ -495,6 +509,7 @@ int fi_ibv_set_rnr_timer(struct ibv_qp *qp)
+ {
+ 	struct ibv_qp_attr attr = { 0 };
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (fi_ibv_gl_data.min_rnr_timer > 31) {
+ 		VERBS_WARN(FI_LOG_EQ, "min_rnr_timer value out of valid range; "
+@@ -521,6 +536,7 @@ static int fi_ibv_get_param_int(const char *param_name,
+ 				int *param_default)
+ {
+ 	int param, ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_ibv_param_define(param_name, param_str,
+ 				  FI_PARAM_INT,
+@@ -539,6 +555,7 @@ static int fi_ibv_get_param_bool(const char *param_name,
+ 				 int *param_default)
+ {
+ 	int param, ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_ibv_param_define(param_name, param_str,
+ 				  FI_PARAM_BOOL,
+@@ -561,6 +578,7 @@ static int fi_ibv_get_param_str(const char *param_name,
+ {
+ 	char *param;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_ibv_param_define(param_name, param_str,
+ 				  FI_PARAM_STRING,
+@@ -577,6 +595,7 @@ static int fi_ibv_get_param_str(const char *param_name,
+ static int fi_ibv_read_params(void)
+ {
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	/* Common parameters */
+ 	if (fi_ibv_get_param_int("tx_size", "Default maximum tx context size",
+@@ -728,12 +747,14 @@ static int fi_ibv_read_params(void)
+ 
+ static void fi_ibv_fini(void)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	fi_freeinfo((void *)fi_ibv_util_prov.info);
+ 	fi_ibv_util_prov.info = NULL;
+ }
+ 
+ VERBS_INI
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (fi_ibv_read_params()|| fi_ibv_init_info(&fi_ibv_util_prov.info))
+ 		return NULL;
+ 	return &fi_ibv_prov;
+diff --git a/prov/verbs/src/fi_verbs.h b/prov/verbs/src/fi_verbs.h
+index e221489..161bddb 100644
+--- a/prov/verbs/src/fi_verbs.h
++++ b/prov/verbs/src/fi_verbs.h
+@@ -226,6 +226,7 @@ static inline
+ int fi_ibv_dgram_ns_service_cmp(void *svc1, void *svc2)
+ {
+ 	int service1 = *(int *)svc1, service2 = *(int *)svc2;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (fi_ibv_dgram_ns_is_service_wildcard(svc1) ||
+ 	    fi_ibv_dgram_ns_is_service_wildcard(svc2))
+diff --git a/prov/verbs/src/verbs_atomic.c b/prov/verbs/src/verbs_atomic.c
+index 17b4f3b..de6ec6f 100644
+--- a/prov/verbs/src/verbs_atomic.c
++++ b/prov/verbs/src/verbs_atomic.c
+@@ -67,6 +67,7 @@ int fi_ibv_query_atomic(struct fid_domain *domain_fid, enum fi_datatype datatype
+ 	char *log_str_fetch = "fi_fetch_atomic with FI_SUM op";
+ 	char *log_str_comp = "fi_compare_atomic";
+ 	char *log_str;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (flags & FI_TAGGED)
+ 		return -FI_ENOSYS;
+@@ -135,6 +136,7 @@ fi_ibv_msg_ep_atomic_write(struct fid_ep *ep_fid, const void *buf, size_t count,
+ 	struct ibv_send_wr wr;
+ 	size_t count_copy;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (count != 1)
+ 		return -FI_E2BIG;
+@@ -173,6 +175,7 @@ fi_ibv_msg_ep_atomic_writev(struct fid_ep *ep,
+ {
+ 	if (iov->count != 1)
+ 		return -FI_E2BIG;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_msg_ep_atomic_write(ep, iov->addr, count, desc[0],
+ 			dest_addr, addr, key, datatype, op, context);
+@@ -186,6 +189,7 @@ fi_ibv_msg_ep_atomic_writemsg(struct fid_ep *ep_fid,
+ 	struct ibv_send_wr wr;
+ 	size_t count_copy;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (msg->iov_count != 1 || msg->msg_iov->count != 1)
+ 		return -FI_E2BIG;
+@@ -234,6 +238,7 @@ fi_ibv_msg_ep_atomic_readwrite(struct fid_ep *ep_fid, const void *buf, size_t co
+ 	struct ibv_send_wr wr;
+ 	size_t count_copy;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (count != 1)
+ 		return -FI_E2BIG;
+@@ -279,6 +284,7 @@ fi_ibv_msg_ep_atomic_readwritev(struct fid_ep *ep, const struct fi_ioc *iov,
+ 			uint64_t key, enum fi_datatype datatype,
+ 			enum fi_op op, void *context)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (iov->count != 1)
+ 		return -FI_E2BIG;
+ 
+@@ -297,6 +303,7 @@ fi_ibv_msg_ep_atomic_readwritemsg(struct fid_ep *ep_fid,
+ 	struct ibv_send_wr wr;
+ 	size_t count_copy;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (msg->iov_count != 1 || msg->msg_iov->count != 1)
+ 		return -FI_E2BIG;
+@@ -350,6 +357,7 @@ fi_ibv_msg_ep_atomic_compwrite(struct fid_ep *ep_fid, const void *buf, size_t co
+ 	struct ibv_send_wr wr;
+ 	size_t count_copy;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (count != 1)
+ 		return -FI_E2BIG;
+@@ -386,6 +394,7 @@ fi_ibv_msg_ep_atomic_compwritev(struct fid_ep *ep, const struct fi_ioc *iov,
+ 				enum fi_datatype datatype,
+ 				enum fi_op op, void *context)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (iov->count != 1)
+ 		return -FI_E2BIG;
+ 
+@@ -408,6 +417,7 @@ fi_ibv_msg_ep_atomic_compwritemsg(struct fid_ep *ep_fid,
+ 	struct ibv_send_wr wr;
+ 	size_t count_copy;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (msg->iov_count != 1 || msg->msg_iov->count != 1)
+ 		return -FI_E2BIG;
+diff --git a/prov/verbs/src/verbs_cm.c b/prov/verbs/src/verbs_cm.c
+index 23f702e..aa1e60a 100644
+--- a/prov/verbs/src/verbs_cm.c
++++ b/prov/verbs/src/verbs_cm.c
+@@ -38,6 +38,7 @@
+ static int fi_ibv_copy_addr(void *dst_addr, size_t *dst_addrlen, void *src_addr)
+ {
+ 	size_t src_addrlen = fi_ibv_sockaddr_len(src_addr);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (*dst_addrlen == 0) {
+ 		*dst_addrlen = src_addrlen;
+@@ -59,6 +60,7 @@ static int fi_ibv_msg_ep_setname(fid_t ep_fid, void *addr, size_t addrlen)
+ 	void *save_addr;
+ 	struct rdma_cm_id *id;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(ep_fid, struct fi_ibv_msg_ep, ep_fid);
+ 
+@@ -100,6 +102,7 @@ static int fi_ibv_msg_ep_getname(fid_t ep, void *addr, size_t *addrlen)
+ {
+ 	struct fi_ibv_msg_ep *_ep;
+ 	struct sockaddr *sa;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_ep = container_of(ep, struct fi_ibv_msg_ep, ep_fid);
+ 	sa = rdma_get_local_addr(_ep->id);
+@@ -110,6 +113,7 @@ static int fi_ibv_msg_ep_getpeer(struct fid_ep *ep, void *addr, size_t *addrlen)
+ {
+ 	struct fi_ibv_msg_ep *_ep;
+ 	struct sockaddr *sa;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_ep = container_of(ep, struct fi_ibv_msg_ep, ep_fid);
+ 	sa = rdma_get_peer_addr(_ep->id);
+@@ -124,6 +128,7 @@ fi_ibv_msg_ep_connect(struct fid_ep *ep, const void *addr,
+ 	struct rdma_conn_param conn_param;
+ 	struct sockaddr *src_addr, *dst_addr;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_ep = container_of(ep, struct fi_ibv_msg_ep, ep_fid);
+ 	if (!_ep->id->qp) {
+@@ -168,6 +173,7 @@ fi_ibv_msg_ep_accept(struct fid_ep *ep, const void *param, size_t paramlen)
+ 	struct rdma_conn_param conn_param;
+ 	struct fi_ibv_connreq *connreq;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_ep = container_of(ep, struct fi_ibv_msg_ep, ep_fid);
+ 	if (!_ep->id->qp) {
+@@ -203,6 +209,7 @@ fi_ibv_msg_ep_reject(struct fid_pep *pep, fid_t handle,
+ {
+ 	struct fi_ibv_connreq *connreq;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	connreq = container_of(handle, struct fi_ibv_connreq, handle);
+ 	ret = rdma_reject(connreq->id, param, (uint8_t) paramlen) ? -errno : 0;
+@@ -213,6 +220,7 @@ fi_ibv_msg_ep_reject(struct fid_pep *pep, fid_t handle,
+ static int fi_ibv_msg_ep_shutdown(struct fid_ep *ep, uint64_t flags)
+ {
+ 	struct fi_ibv_msg_ep *_ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	_ep = container_of(ep, struct fi_ibv_msg_ep, ep_fid);
+ 	return rdma_disconnect(_ep->id) ? -errno : 0;
+ }
+@@ -234,6 +242,7 @@ static int fi_ibv_pep_setname(fid_t pep_fid, void *addr, size_t addrlen)
+ {
+ 	struct fi_ibv_pep *pep;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	pep = container_of(pep_fid, struct fi_ibv_pep, pep_fid);
+ 
+@@ -273,6 +282,7 @@ static int fi_ibv_pep_getname(fid_t pep, void *addr, size_t *addrlen)
+ {
+ 	struct fi_ibv_pep *_pep;
+ 	struct sockaddr *sa;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_pep = container_of(pep, struct fi_ibv_pep, pep_fid);
+ 	sa = rdma_get_local_addr(_pep->id);
+@@ -283,6 +293,7 @@ static int fi_ibv_pep_listen(struct fid_pep *pep_fid)
+ {
+ 	struct fi_ibv_pep *pep;
+ 	struct sockaddr *addr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	pep = container_of(pep_fid, struct fi_ibv_pep, pep_fid);
+ 
+@@ -311,5 +322,6 @@ static struct fi_ops_cm fi_ibv_pep_cm_ops = {
+ 
+ struct fi_ops_cm *fi_ibv_pep_ops_cm(struct fi_ibv_pep *pep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return &fi_ibv_pep_cm_ops;
+ }
+diff --git a/prov/verbs/src/verbs_cq.c b/prov/verbs/src/verbs_cq.c
+index f65b977..4d2fec8 100644
+--- a/prov/verbs/src/verbs_cq.c
++++ b/prov/verbs/src/verbs_cq.c
+@@ -39,6 +39,7 @@
+ static uint64_t fi_ibv_comp_flags(struct ibv_wc *wc)
+ {
+ 	uint64_t flags = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (wc->wc_flags & IBV_WC_WITH_IMM)
+ 		flags |= FI_REMOTE_CQ_DATA;
+@@ -79,6 +80,7 @@ fi_ibv_cq_readerr(struct fid_cq *cq_fid, struct fi_cq_err_entry *entry,
+ 	struct fi_ibv_wce *wce;
+ 	struct slist_entry *slist_entry;
+ 	uint32_t api_version;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cq = container_of(cq_fid, struct fi_ibv_cq, cq_fid);
+ 
+@@ -126,6 +128,7 @@ fi_ibv_poll_events(struct fi_ibv_cq *_cq, int timeout)
+ 	void *context;
+ 	struct pollfd fds[2];
+ 	char data;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fds[0].fd = _cq->channel->fd;
+ 	fds[1].fd = _cq->signal_fd[0];
+@@ -169,6 +172,7 @@ fi_ibv_cq_sread(struct fid_cq *cq, void *buf, size_t count, const void *cond,
+ 	ssize_t  threshold;
+ 	struct fi_ibv_cq *_cq;
+ 	uint8_t *p;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	p = buf;
+ 	_cq = container_of(cq, struct fi_ibv_cq, cq_fid);
+@@ -203,6 +207,7 @@ fi_ibv_cq_sread(struct fid_cq *cq, void *buf, size_t count, const void *cond,
+ static void fi_ibv_cq_read_context_entry(struct ibv_wc *wc, int i, void *buf)
+ {
+ 	struct fi_cq_entry *entry = buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry[i].op_context = (void *)(uintptr_t)wc->wr_id;
+ }
+@@ -210,6 +215,7 @@ static void fi_ibv_cq_read_context_entry(struct ibv_wc *wc, int i, void *buf)
+ static void fi_ibv_cq_read_msg_entry(struct ibv_wc *wc, int i, void *buf)
+ {
+ 	struct fi_cq_msg_entry *entry = buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry[i].op_context = (void *)(uintptr_t)wc->wr_id;
+ 	entry[i].flags = fi_ibv_comp_flags(wc);
+@@ -219,6 +225,7 @@ static void fi_ibv_cq_read_msg_entry(struct ibv_wc *wc, int i, void *buf)
+ static void fi_ibv_cq_read_data_entry(struct ibv_wc *wc, int i, void *buf)
+ {
+ 	struct fi_cq_data_entry *entry = buf;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry[i].op_context = (void *)(uintptr_t)wc->wr_id;
+ 	entry[i].flags = fi_ibv_comp_flags(wc);
+@@ -233,6 +240,7 @@ static int fi_ibv_match_ep_id(struct slist_entry *entry,
+ {
+ 	struct fi_ibv_msg_epe *epe =
+ 		container_of(entry, struct fi_ibv_msg_epe, entry);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return (epe->ep->ep_id == (uint64_t)ep_id);
+ }
+@@ -242,6 +250,7 @@ static inline int fi_ibv_handle_internal_signal_wc(struct fi_ibv_cq *cq,
+ {
+ 	struct fi_ibv_msg_epe *epe;
+ 	struct slist_entry *entry;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry = slist_remove_first_match(&cq->ep_list,
+ 					 fi_ibv_match_ep_id,
+@@ -267,6 +276,7 @@ static inline int fi_ibv_wc_2_wce(struct fi_ibv_cq *cq,
+ {
+ 	struct fi_ibv_wre *wre =
+ 		(struct fi_ibv_wre *)(uintptr_t)wc->wr_id;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	*wce = util_buf_alloc(cq->wce_pool);
+ 	if (!*wce)
+@@ -287,6 +297,7 @@ static inline int fi_ibv_poll_outstanding_cq(struct fi_ibv_msg_ep *ep,
+ 	struct util_buf_pool *wre_pool;
+ 	struct ibv_wc wc;
+ 	ssize_t ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = ibv_poll_cq(cq->cq, 1, &wc);
+ 	if (ret <= 0)
+@@ -341,6 +352,7 @@ void fi_ibv_empty_wre_list(struct util_buf_pool *wre_pool,
+ {
+ 	struct fi_ibv_wre *wre;
+ 	struct dlist_entry *tmp;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	dlist_foreach_container_safe(wre_list, struct fi_ibv_wre,
+ 				     wre, entry, tmp) {
+@@ -356,6 +368,7 @@ void fi_ibv_empty_wre_list(struct util_buf_pool *wre_pool,
+ void fi_ibv_cleanup_cq(struct fi_ibv_msg_ep *ep)
+ {
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fastlock_acquire(&ep->rcq->lock);
+ 	do {
+@@ -389,6 +402,7 @@ ssize_t fi_ibv_poll_cq(struct fi_ibv_cq *cq, struct ibv_wc *wc)
+ 	struct util_buf_pool *wre_pool;
+ 	fastlock_t *wre_lock;
+ 	ssize_t ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = ibv_poll_cq(cq->cq, 1, wc);
+ 	if (ret <= 0)
+@@ -442,6 +456,7 @@ static ssize_t fi_ibv_cq_read(struct fid_cq *cq_fid, void *buf, size_t count)
+ 	struct slist_entry *entry;
+ 	struct ibv_wc wc;
+ 	ssize_t ret = 0, i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cq = container_of(cq_fid, struct fi_ibv_cq, cq_fid);
+ 
+@@ -490,6 +505,7 @@ static const char *
+ fi_ibv_cq_strerror(struct fid_cq *eq, int prov_errno, const void *err_data,
+ 		   char *buf, size_t len)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (buf && len)
+ 		strncpy(buf, ibv_wc_status_str(prov_errno), len);
+ 	return ibv_wc_status_str(prov_errno);
+@@ -499,6 +515,7 @@ int fi_ibv_cq_signal(struct fid_cq *cq)
+ {
+ 	struct fi_ibv_cq *_cq;
+ 	char data = '0';
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_cq = container_of(cq, struct fi_ibv_cq, cq_fid);
+ 
+@@ -516,6 +533,7 @@ static int fi_ibv_cq_trywait(struct fid *fid)
+ 	struct fi_ibv_wce *wce;
+ 	void *context;
+ 	int ret = -FI_EAGAIN, rc;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cq = container_of(fid, struct fi_ibv_cq, cq_fid.fid);
+ 
+@@ -586,6 +604,7 @@ static int fi_ibv_cq_control(fid_t fid, int command, void *arg)
+ {
+ 	struct fi_ibv_cq *cq;
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cq = container_of(fid, struct fi_ibv_cq, cq_fid.fid);
+ 	switch(command) {
+@@ -611,6 +630,7 @@ static int fi_ibv_cq_close(fid_t fid)
+ 	struct fi_ibv_wce *wce;
+ 	struct slist_entry *entry;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	cq = container_of(fid, struct fi_ibv_cq, cq_fid.fid);
+ 
+@@ -671,6 +691,7 @@ int fi_ibv_cq_open(struct fid_domain *domain, struct fi_cq_attr *attr,
+ 	int ep_cnt_bits = 0;
+ 	size_t size;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_cq = calloc(1, sizeof *_cq);
+ 	if (!_cq)
+diff --git a/prov/verbs/src/verbs_domain.c b/prov/verbs/src/verbs_domain.c
+index 852b7f5..ef88873 100644
+--- a/prov/verbs/src/verbs_domain.c
++++ b/prov/verbs/src/verbs_domain.c
+@@ -42,6 +42,7 @@ static int fi_ibv_domain_bind(struct fid *fid, struct fid *bfid, uint64_t flags)
+ 	struct fi_ibv_domain *domain;
+ 	struct fi_ibv_eq *eq;
+ 	struct fi_ibv_dgram_eq *dgram_eq;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	domain = container_of(fid, struct fi_ibv_domain,
+ 			      util_domain.domain_fid.fid);
+@@ -79,6 +80,7 @@ static void *fi_ibv_rdm_cm_progress_thread(void *dom)
+ 	struct fi_ibv_domain *domain =
+ 		(struct fi_ibv_domain *)dom;
+ 	struct slist_entry *item, *prev;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	while (domain->rdm_cm->fi_ibv_rdm_tagged_cm_progress_running) {
+ 		struct fi_ibv_rdm_ep *ep = NULL;
+ 		slist_foreach(&domain->ep_list, item, prev) {
+@@ -104,6 +106,7 @@ static int fi_ibv_domain_close(fid_t fid)
+ 	struct slist_entry *item;
+ 	void *status = NULL;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	domain = container_of(fid, struct fi_ibv_domain,
+ 			      util_domain.domain_fid.fid);
+@@ -167,6 +170,7 @@ static int fi_ibv_open_device_by_name(struct fi_ibv_domain *domain, const char *
+ {
+ 	struct ibv_context **dev_list;
+ 	int i, ret = -FI_ENODEV;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!name)
+ 		return -FI_EINVAL;
+@@ -261,6 +265,7 @@ fi_ibv_domain(struct fid_fabric *fabric, struct fi_info *info,
+ 	const struct fi_info *fi;
+ 	void *status = NULL;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fab = container_of(fabric, struct fi_ibv_fabric,
+ 			   util_fabric.fabric_fid);
+@@ -416,6 +421,7 @@ static int fi_ibv_trywait(struct fid_fabric *fabric, struct fid **fids, int coun
+ {
+ 	struct fi_ibv_cq *cq;
+ 	int ret, i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	for (i = 0; i < count; i++) {
+ 		switch (fids[i]->fclass) {
+@@ -444,6 +450,7 @@ static int fi_ibv_fabric_close(fid_t fid)
+ {
+ 	struct fi_ibv_fabric *fab;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fab = container_of(fid, struct fi_ibv_fabric, util_fabric.fabric_fid.fid);
+ 	ret = ofi_fabric_close(&fab->util_fabric);
+@@ -477,6 +484,7 @@ int fi_ibv_fabric(struct fi_fabric_attr *attr, struct fid_fabric **fabric,
+ 	struct fi_ibv_fabric *fab;
+ 	const struct fi_info *cur, *info = fi_ibv_util_prov.info;
+ 	int ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fab = calloc(1, sizeof(*fab));
+ 	if (!fab)
+diff --git a/prov/verbs/src/verbs_eq.c b/prov/verbs/src/verbs_eq.c
+index d130767..ff34917 100644
+--- a/prov/verbs/src/verbs_eq.c
++++ b/prov/verbs/src/verbs_eq.c
+@@ -39,6 +39,7 @@ const struct fi_info *
+ fi_ibv_get_verbs_info(const struct fi_info *ilist, const char *domain_name)
+ {
+ 	const struct fi_info *fi;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	for (fi = ilist; fi; fi = fi->next) {
+ 		if (!strcmp(fi->domain_attr->name, domain_name))
+@@ -56,6 +57,7 @@ fi_ibv_eq_readerr(struct fid_eq *eq, struct fi_eq_err_entry *entry,
+ 	uint32_t api_version;
+ 	void *err_data = NULL;
+ 	size_t err_data_size = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_eq = container_of(eq, struct fi_ibv_eq, eq_fid.fid);
+ 	if (!_eq->err.err)
+@@ -89,6 +91,7 @@ fi_ibv_eq_cm_getinfo(struct fi_ibv_fabric *fab, struct rdma_cm_event *event,
+ 	const struct fi_info *fi;
+ 	struct fi_ibv_connreq *connreq;
+ 	const char *devname = ibv_get_device_name(event->id->verbs->device);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (strcmp(devname, fab->info->domain_attr->name)) {
+ 		fi = fi_ibv_get_verbs_info(fi_ibv_util_prov.info, devname);
+@@ -147,6 +150,7 @@ fi_ibv_eq_cm_process_event(struct fi_ibv_eq *eq, struct rdma_cm_event *cma_event
+ 	fid_t fid;
+ 	size_t datalen;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fid = cma_event->id->context;
+ 	pep = container_of(fid, struct fi_ibv_pep, pep_fid);
+@@ -208,6 +212,7 @@ ssize_t fi_ibv_eq_write_event(struct fi_ibv_eq *eq, uint32_t event,
+ 		const void *buf, size_t len)
+ {
+ 	struct fi_ibv_eq_entry *entry;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	entry = calloc(1, sizeof(struct fi_ibv_eq_entry) + len);
+ 	if (!entry)
+@@ -228,6 +233,7 @@ static ssize_t fi_ibv_eq_write(struct fid_eq *eq_fid, uint32_t event,
+ 			       const void *buf, size_t len, uint64_t flags)
+ {
+ 	struct fi_ibv_eq *eq;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	eq = container_of(eq_fid, struct fi_ibv_eq, eq_fid.fid);
+ 	if (!(eq->flags & FI_WRITE))
+@@ -241,6 +247,7 @@ static size_t fi_ibv_eq_read_event(struct fi_ibv_eq *eq, uint32_t *event,
+ {
+ 	struct fi_ibv_eq_entry *entry;
+ 	ssize_t ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	fastlock_acquire(&eq->lock);
+ 
+@@ -274,6 +281,7 @@ fi_ibv_eq_read(struct fid_eq *eq_fid, uint32_t *event,
+ 	struct fi_ibv_eq *eq;
+ 	struct rdma_cm_event *cma_event;
+ 	ssize_t ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	eq = container_of(eq_fid, struct fi_ibv_eq, eq_fid.fid);
+ 
+@@ -315,6 +323,7 @@ fi_ibv_eq_sread(struct fid_eq *eq_fid, uint32_t *event,
+ 	struct fi_ibv_eq *eq;
+ 	struct epoll_event events[2];
+ 	ssize_t ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	eq = container_of(eq_fid, struct fi_ibv_eq, eq_fid.fid);
+ 
+@@ -335,6 +344,7 @@ static const char *
+ fi_ibv_eq_strerror(struct fid_eq *eq, int prov_errno, const void *err_data,
+ 		   char *buf, size_t len)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (buf && len)
+ 		strncpy(buf, strerror(prov_errno), len);
+ 	return strerror(prov_errno);
+@@ -353,6 +363,7 @@ static int fi_ibv_eq_control(fid_t fid, int command, void *arg)
+ {
+ 	struct fi_ibv_eq *eq;
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	eq = container_of(fid, struct fi_ibv_eq, eq_fid.fid);
+ 	switch (command) {
+@@ -375,6 +386,7 @@ static int fi_ibv_eq_close(fid_t fid)
+ {
+ 	struct fi_ibv_eq *eq;
+ 	struct fi_ibv_eq_entry *entry;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	eq = container_of(fid, struct fi_ibv_eq, eq_fid.fid);
+ 	/* TODO: use util code, if possible, and add ref counting */
+@@ -412,6 +424,7 @@ int fi_ibv_eq_open(struct fid_fabric *fabric, struct fi_eq_attr *attr,
+ 	struct fi_ibv_eq *_eq;
+ 	struct epoll_event event;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_eq = calloc(1, sizeof *_eq);
+ 	if (!_eq)
+diff --git a/prov/verbs/src/verbs_info.c b/prov/verbs/src/verbs_info.c
+index f4e674d..c67ca76 100644
+--- a/prov/verbs/src/verbs_info.c
++++ b/prov/verbs/src/verbs_info.c
+@@ -170,6 +170,7 @@ int fi_ibv_check_ep_attr(const struct fi_info *hints,
+ 			 UTIL_RX_SHARED_CTX : 0,
+ 	};
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	switch (hints->ep_attr->protocol) {
+ 	case FI_PROTO_UNSPEC:
+@@ -210,6 +211,7 @@ int fi_ibv_check_rx_attr(const struct fi_rx_attr *attr,
+ 	/* WARNING: This is not thread safe */
+ 	uint64_t saved_prov_mode = info->rx_attr->mode;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	info->rx_attr->mode = (hints->domain_attr &&
+ 			       hints->domain_attr->cq_data_size) ?
+@@ -228,6 +230,7 @@ static int fi_ibv_check_hints(uint32_t version, const struct fi_info *hints,
+ {
+ 	int ret;
+ 	uint64_t prov_mode;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (hints->caps & ~(info->caps)) {
+ 		VERBS_INFO(FI_LOG_CORE, "Unsupported capabilities\n");
+@@ -283,6 +286,7 @@ static int fi_ibv_check_hints(uint32_t version, const struct fi_info *hints,
+ int fi_ibv_fi_to_rai(const struct fi_info *fi, uint64_t flags,
+ 		     struct rdma_addrinfo *rai)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	memset(rai, 0, sizeof *rai);
+ 	if (flags & FI_SOURCE)
+ 		rai->ai_flags = RAI_PASSIVE;
+@@ -343,6 +347,7 @@ void *fi_ibv_dgram_ep_name_to_string(const struct ofi_ib_ud_ep_name *name,
+ 				     size_t *len)
+ {
+ 	char *str;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!name)
+ 		return NULL;
+ 
+@@ -363,6 +368,7 @@ void *fi_ibv_dgram_ep_name_to_string(const struct ofi_ib_ud_ep_name *name,
+ static int fi_ibv_fill_addr_by_ep_name(struct ofi_ib_ud_ep_name *ep_name,
+ 				       uint32_t fmt, void **addr, size_t *addrlen)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (fmt == FI_ADDR_STR) {
+ 		*addr = fi_ibv_dgram_ep_name_to_string(ep_name, addrlen);
+ 		if (!*addr)
+@@ -380,6 +386,7 @@ static int fi_ibv_fill_addr_by_ep_name(struct ofi_ib_ud_ep_name *ep_name,
+ 
+ static int fi_ibv_rai_to_fi(struct rdma_addrinfo *rai, struct fi_info *fi)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (!rai)
+ 		return FI_SUCCESS;
+ 
+@@ -415,6 +422,7 @@ static inline int fi_ibv_get_qp_cap(struct ibv_context *ctx,
+ 	struct ibv_qp *qp;
+ 	struct ibv_qp_init_attr init_attr;
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	pd = ibv_alloc_pd(ctx);
+ 	if (!pd) {
+@@ -461,6 +469,7 @@ err1:
+ 
+ static size_t fi_ibv_mtu_type_to_len(enum ibv_mtu mtu_type)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (mtu_type) {
+ 	case IBV_MTU_256:
+ 		return 256;
+@@ -486,6 +495,7 @@ static int fi_ibv_get_device_attrs(struct ibv_context *ctx,
+ 	size_t max_sup_size;
+ 	int ret = 0;
+ 	uint8_t port_num;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = ibv_query_device(ctx, &device_attr);
+ 	if (ret) {
+@@ -569,6 +579,7 @@ static int fi_ibv_have_device(void)
+ 	struct ibv_device **devs;
+ 	struct ibv_context *verbs;
+ 	int i, ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	devs = ibv_get_device_list(NULL);
+ 	if (!devs)
+@@ -594,6 +605,7 @@ static int fi_ibv_alloc_info(struct ibv_context *ctx, struct fi_info **info,
+ 	union ibv_gid gid;
+ 	size_t name_len;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if ((ctx->device->transport_type != IBV_TRANSPORT_IB) &&
+ 	    (ep_dom->type == FI_EP_DGRAM))
+@@ -719,6 +731,7 @@ static void fi_ibv_verbs_devs_free(struct dlist_entry *verbs_devs)
+ {
+ 	struct verbs_dev_info *dev;
+ 	struct verbs_addr *addr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	while (!dlist_empty(verbs_devs)) {
+ 		dlist_pop_front(verbs_devs, struct verbs_dev_info, dev, entry);
+@@ -738,6 +751,7 @@ static int fi_ibv_add_rai(struct dlist_entry *verbs_devs, struct rdma_cm_id *id,
+ 	struct verbs_dev_info *dev;
+ 	struct verbs_addr *addr;
+ 	const char *dev_name;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!(addr = malloc(sizeof(*addr))))
+ 		return -FI_ENOMEM;
+@@ -779,6 +793,7 @@ static int fi_ibv_getifaddrs(struct dlist_entry *verbs_devs)
+ 	int ret, num_verbs_ifs = 0;
+ 	size_t iface_len = 0;
+ 	int exact_match = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = ofi_getifaddrs(&ifaddr);
+ 	if (ret) {
+@@ -869,6 +884,7 @@ static int fi_ibv_get_srcaddr_devs(struct fi_info **info)
+ 	struct verbs_dev_info *dev;
+ 	struct verbs_addr *addr;
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	DEFINE_LIST(verbs_devs);
+ 
+@@ -972,6 +988,7 @@ static int fi_ibv_set_info_addrs(struct fi_info *info,
+ {
+ 	struct fi_info *iter_info = info;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	for (; iter_info; iter_info = iter_info->next) {
+ 		if (iter_info->ep_attr->type != FI_EP_DGRAM) {
+@@ -1004,6 +1021,7 @@ static int fi_ibv_fill_addr(struct rdma_addrinfo *rai, struct fi_info **info,
+ 			    struct rdma_cm_id *id)
+ {
+ 	struct sockaddr *local_addr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	/*
+ 	 * TODO MPICH CH3 doesn't work with verbs provider without skipping the
+@@ -1047,6 +1065,7 @@ int fi_ibv_init_info(const struct fi_info **all_infos)
+ 	struct fi_info *fi = NULL, *tail = NULL;
+ 	int ret = 0, i, num_devices;
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	*all_infos = NULL;
+ 
+ 	if (!fi_ibv_gl_data.fork_unsafe) {
+@@ -1111,6 +1130,7 @@ done:
+ static int fi_ibv_set_default_attr(struct fi_info *info, size_t *attr,
+ 				   size_t default_attr, char *attr_str)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (default_attr > *attr) {
+ 		VERBS_WARN(FI_LOG_FABRIC, "Ignoring provider default value "
+ 			   "for %s as it is greater than the value supported "
+@@ -1126,6 +1146,7 @@ static int fi_ibv_set_default_attr(struct fi_info *info, size_t *attr,
+ static int fi_ibv_set_default_info(struct fi_info *info)
+ {
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_ibv_set_default_attr(info, &info->tx_attr->size,
+ 				      fi_ibv_gl_data.def_tx_size,
+@@ -1178,6 +1199,7 @@ static int fi_ibv_get_matching_info(uint32_t version,
+ 	const struct fi_info *check_info = verbs_info;
+ 	struct fi_info *fi, *tail;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	*info = tail = NULL;
+ 
+@@ -1222,6 +1244,7 @@ static int fi_ibv_del_info_not_belong_to_dev(const char *dev_name, struct fi_inf
+ {
+ 	struct fi_info *check_info = *info;
+ 	struct fi_info *cur, *prev = NULL;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	*info = NULL;
+ 
+@@ -1266,6 +1289,7 @@ static int fi_ibv_resolve_ib_ud_dest_addr(const char *node, const char *service,
+ 		.service_cmp = fi_ibv_dgram_ns_service_cmp,
+ 		.is_service_wildcard = fi_ibv_dgram_ns_is_service_wildcard,
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = ofi_ns_init(&ns_attr, &ns);
+ 	if (ret) {
+@@ -1298,6 +1322,7 @@ static int fi_ibv_handle_ib_ud_addr(const char *node, const char *service,
+ 	size_t len = 0;
+ 	uint32_t fmt = FI_FORMAT_UNSPEC;
+ 	int svc = VERBS_IB_UD_NS_ANY_SERVICE, ret = FI_SUCCESS;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (node && !ofi_str_toaddr(node, &fmt, &addr, &len) &&
+ 	    fmt == FI_ADDR_IB_UD) {
+@@ -1358,6 +1383,7 @@ static int fi_ibv_handle_sock_addr(const char *node, const char *service,
+ 	struct rdma_addrinfo *rai;
+ 	const char *dev_name = NULL;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_ibv_create_ep(node, service, flags, hints, &rai, &id);
+ 	if (ret)
+@@ -1383,6 +1409,7 @@ static int fi_ibv_get_match_infos(uint32_t version, const char *node,
+ {
+ 	int ret, ret_sock_addr, ret_ib_ud_addr;
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	ret = fi_ibv_get_matching_info(version, hints,
+ 				       info, *raw_info);
+ 	if (ret)
+@@ -1423,6 +1450,7 @@ int fi_ibv_getinfo(uint32_t version, const char *node, const char *service,
+ {
+ 	int ret;
+ 	const struct fi_info *cur;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ret = fi_ibv_get_match_infos(version, node, service,
+ 				     flags, hints,
+diff --git a/prov/verbs/src/verbs_mr.c b/prov/verbs/src/verbs_mr.c
+index 5483ab7..68e3c32 100644
+--- a/prov/verbs/src/verbs_mr.c
++++ b/prov/verbs/src/verbs_mr.c
+@@ -37,6 +37,7 @@ static int fi_ibv_mr_close(fid_t fid)
+ {
+ 	struct fi_ibv_mem_desc *mr;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	mr = container_of(fid, struct fi_ibv_mem_desc, mr_fid.fid);
+ 	ret = -ibv_dereg_mr(mr->mr);
+@@ -61,6 +62,7 @@ fi_ibv_mr_reg(struct fid *fid, const void *buf, size_t len,
+ 	struct fi_ibv_mem_desc *md;
+ 	int fi_ibv_access = 0;
+ 	struct fid_domain *domain;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (flags)
+ 		return -FI_EBADFLAGS;
+@@ -141,6 +143,7 @@ static int fi_ibv_mr_regv(struct fid *fid, const struct iovec * iov,
+ 		size_t count, uint64_t access, uint64_t offset, uint64_t requested_key,
+ 		uint64_t flags, struct fid_mr **mr, void *context)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (count > VERBS_MR_IOV_LIMIT) {
+ 		VERBS_WARN(FI_LOG_FABRIC,
+ 			   "iov count > %d not supported\n",
+@@ -154,6 +157,7 @@ static int fi_ibv_mr_regv(struct fid *fid, const struct iovec * iov,
+ static int fi_ibv_mr_regattr(struct fid *fid, const struct fi_mr_attr *attr,
+ 		uint64_t flags, struct fid_mr **mr)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	return fi_ibv_mr_regv(fid, attr->mr_iov, attr->iov_count, attr->access,
+ 			0, attr->requested_key, flags, mr, attr->context);
+ }
+diff --git a/prov/verbs/src/verbs_msg.c b/prov/verbs/src/verbs_msg.c
+index 0556180..1c550bd 100644
+--- a/prov/verbs/src/verbs_msg.c
++++ b/prov/verbs/src/verbs_msg.c
+@@ -42,6 +42,7 @@ fi_ibv_msg_ep_recvmsg(struct fid_ep *ep, const struct fi_msg *msg, uint64_t flag
+ 	struct fi_ibv_wre *wre;
+ 	struct ibv_sge *sge = NULL;
+ 	size_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_ep = container_of(ep, struct fi_ibv_msg_ep, ep_fid);
+ 	assert(_ep->rcq);
+@@ -83,6 +84,7 @@ fi_ibv_msg_ep_recv(struct fid_ep *ep, void *buf, size_t len,
+ {
+ 	struct iovec iov;
+ 	struct fi_msg msg;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	iov.iov_base = buf;
+ 	iov.iov_len = len;
+@@ -101,6 +103,7 @@ fi_ibv_msg_ep_recvv(struct fid_ep *ep, const struct iovec *iov, void **desc,
+                  size_t count, fi_addr_t src_addr, void *context)
+ {
+ 	struct fi_msg msg;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	msg.msg_iov = iov;
+ 	msg.desc = desc;
+@@ -116,6 +119,7 @@ fi_ibv_msg_ep_sendmsg(struct fid_ep *ep_fid, const struct fi_msg *msg, uint64_t
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (flags & FI_REMOTE_CQ_DATA) {
+ 		wr.opcode = IBV_WR_SEND_WITH_IMM;
+@@ -134,6 +138,7 @@ fi_ibv_msg_ep_send(struct fid_ep *ep_fid, const void *buf, size_t len,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr.opcode = IBV_WR_SEND;
+ 
+@@ -149,6 +154,7 @@ fi_ibv_msg_ep_senddata(struct fid_ep *ep_fid, const void *buf, size_t len,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr.opcode = IBV_WR_SEND_WITH_IMM;
+ 	wr.imm_data = htonl((uint32_t)data);
+@@ -165,6 +171,7 @@ fi_ibv_msg_ep_sendv(struct fid_ep *ep_fid, const struct iovec *iov, void **desc,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr.opcode = IBV_WR_SEND;
+ 
+@@ -177,6 +184,7 @@ static ssize_t fi_ibv_msg_ep_inject(struct fid_ep *ep_fid, const void *buf, size
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr.opcode = IBV_WR_SEND;
+ 	wr.send_flags = IBV_SEND_INLINE;
+@@ -191,6 +199,7 @@ static ssize_t fi_ibv_msg_ep_injectdata(struct fid_ep *ep_fid, const void *buf,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	wr.opcode = IBV_WR_SEND_WITH_IMM;
+ 	wr.imm_data = htonl((uint32_t)data);
+diff --git a/prov/verbs/src/verbs_msg_ep.c b/prov/verbs/src/verbs_msg_ep.c
+index 2e11cf6..0c31fdb 100644
+--- a/prov/verbs/src/verbs_msg_ep.c
++++ b/prov/verbs/src/verbs_msg_ep.c
+@@ -43,6 +43,7 @@ static int
+ fi_ibv_msg_ep_getopt(fid_t fid, int level, int optname,
+ 		  void *optval, size_t *optlen)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (level) {
+ 	case FI_OPT_ENDPOINT:
+ 		switch (optname) {
+@@ -65,6 +66,7 @@ static int
+ fi_ibv_msg_ep_setopt(fid_t fid, int level, int optname,
+ 		  const void *optval, size_t optlen)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	switch (level) {
+ 	case FI_OPT_ENDPOINT:
+ 		return -FI_ENOPROTOOPT;
+@@ -88,6 +90,7 @@ static struct fi_ops_ep fi_ibv_msg_ep_base_ops = {
+ static struct fi_ibv_msg_ep *fi_ibv_alloc_msg_ep(struct fi_info *info)
+ {
+ 	struct fi_ibv_msg_ep *ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = calloc(1, sizeof *ep);
+ 	if (!ep)
+@@ -105,6 +108,7 @@ err:
+ 
+ static void fi_ibv_free_msg_ep(struct fi_ibv_msg_ep *ep)
+ {
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	fi_freeinfo(ep->info);
+ 	free(ep);
+ }
+@@ -112,6 +116,7 @@ static void fi_ibv_free_msg_ep(struct fi_ibv_msg_ep *ep)
+ static int fi_ibv_msg_ep_close(fid_t fid)
+ {
+ 	struct fi_ibv_msg_ep *ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(fid, struct fi_ibv_msg_ep, ep_fid.fid);
+ 	rdma_destroy_ep(ep->id);
+@@ -129,6 +134,7 @@ static int fi_ibv_msg_ep_bind(struct fid *fid, struct fid *bfid, uint64_t flags)
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(fid, struct fi_ibv_msg_ep, ep_fid.fid);
+ 	ret = ofi_ep_bind_valid(&fi_ibv_prov, bfid, flags);
+@@ -183,6 +189,7 @@ static int fi_ibv_msg_ep_enable(struct fid_ep *ep_fid)
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_pd *pd;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(ep_fid, struct fi_ibv_msg_ep, ep_fid);
+ 	if (!ep->eq) {
+@@ -259,6 +266,7 @@ static int fi_ibv_msg_ep_enable(struct fid_ep *ep_fid)
+ static int fi_ibv_msg_ep_control(struct fid *fid, int command, void *arg)
+ {
+ 	struct fid_ep *ep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	switch (fid->fclass) {
+ 	case FI_CLASS_EP:
+@@ -293,6 +301,7 @@ int fi_ibv_open_ep(struct fid_domain *domain, struct fi_info *info,
+ 	struct fi_ibv_pep *pep;
+ 	struct fi_info *fi;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	dom = container_of(domain, struct fi_ibv_domain,
+ 			   util_domain.domain_fid);
+@@ -395,6 +404,7 @@ static int fi_ibv_pep_bind(fid_t fid, struct fid *bfid, uint64_t flags)
+ {
+ 	struct fi_ibv_pep *pep;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	pep = container_of(fid, struct fi_ibv_pep, pep_fid.fid);
+ 	if (bfid->fclass != FI_CLASS_EQ)
+@@ -412,6 +422,7 @@ static int fi_ibv_pep_control(struct fid *fid, int command, void *arg)
+ {
+ 	struct fi_ibv_pep *pep;
+ 	int ret = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	switch (fid->fclass) {
+ 	case FI_CLASS_PEP:
+@@ -438,6 +449,7 @@ static int fi_ibv_pep_control(struct fid *fid, int command, void *arg)
+ static int fi_ibv_pep_close(fid_t fid)
+ {
+ 	struct fi_ibv_pep *pep;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	pep = container_of(fid, struct fi_ibv_pep, pep_fid.fid);
+ 	if (pep->id)
+@@ -471,6 +483,7 @@ int fi_ibv_passive_ep(struct fid_fabric *fabric, struct fi_info *info,
+ {
+ 	struct fi_ibv_pep *_pep;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_pep = calloc(1, sizeof *_pep);
+ 	if (!_pep)
+diff --git a/prov/verbs/src/verbs_rma.c b/prov/verbs/src/verbs_rma.c
+index c61474c..43369d8 100644
+--- a/prov/verbs/src/verbs_rma.c
++++ b/prov/verbs/src/verbs_rma.c
+@@ -52,6 +52,7 @@ fi_ibv_msg_ep_rma_write(struct fid_ep *ep_fid, const void *buf, size_t len,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	memset(&wr, 0, sizeof(wr));
+ 	wr.opcode = IBV_WR_RDMA_WRITE;
+@@ -71,6 +72,7 @@ fi_ibv_msg_ep_rma_writev(struct fid_ep *ep_fid, const struct iovec *iov, void **
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 
+ 	memset(&wr, 0, sizeof(wr));
+@@ -88,6 +90,7 @@ fi_ibv_msg_ep_rma_writemsg(struct fid_ep *ep_fid, const struct fi_msg_rma *msg,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	memset(&wr, 0, sizeof(wr));
+ 	if (flags & FI_REMOTE_CQ_DATA) {
+@@ -111,6 +114,7 @@ fi_ibv_msg_ep_rma_read(struct fid_ep *ep_fid, void *buf, size_t len,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	memset(&wr, 0, sizeof(wr));
+ 	wr.opcode = IBV_WR_RDMA_READ;
+@@ -131,6 +135,7 @@ fi_ibv_msg_ep_rma_readv(struct fid_ep *ep_fid, const struct iovec *iov, void **d
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
+ 	size_t len = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(ep_fid, struct fi_ibv_msg_ep, ep_fid);
+ 
+@@ -152,6 +157,7 @@ fi_ibv_msg_ep_rma_readmsg(struct fid_ep *ep_fid, const struct fi_msg_rma *msg,
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr = { 0 };
+ 	size_t len = 0;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	ep = container_of(ep_fid, struct fi_ibv_msg_ep, ep_fid);
+ 
+@@ -173,6 +179,7 @@ fi_ibv_msg_ep_rma_writedata(struct fid_ep *ep_fid, const void *buf, size_t len,
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	memset(&wr, 0, sizeof(wr));
+ 	wr.opcode = IBV_WR_RDMA_WRITE_WITH_IMM;
+@@ -192,6 +199,7 @@ fi_ibv_msg_ep_rma_inject_write(struct fid_ep *ep_fid, const void *buf, size_t le
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	memset(&wr, 0, sizeof(wr));
+ 	wr.opcode = IBV_WR_RDMA_WRITE;
+@@ -211,6 +219,7 @@ fi_ibv_msg_ep_rma_inject_writedata(struct fid_ep *ep_fid, const void *buf, size_
+ {
+ 	struct fi_ibv_msg_ep *ep;
+ 	struct ibv_send_wr wr;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	memset(&wr, 0, sizeof(wr));
+ 	wr.opcode = IBV_WR_RDMA_WRITE_WITH_IMM;
+@@ -242,6 +251,7 @@ fi_ibv_rdm_ep_rma_preinit(void **desc, struct fi_ibv_rdm_buf **rdm_buf,
+ 			  struct fi_ibv_rdm_ep *ep)
+ {
+ 	assert(desc && rdm_buf);
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (*desc == NULL && len < ep->rndv_threshold) {
+ 		*rdm_buf = fi_ibv_rdm_rma_prepare_resources(conn);
+@@ -285,6 +295,7 @@ fi_ibv_rdm_ep_rma_readmsg(struct fid_ep *ep_fid, const struct fi_msg_rma *msg,
+ 	struct fi_ibv_rdm_buf *rdm_buf = NULL;
+ 	ssize_t ret = FI_SUCCESS;
+ 	struct fi_ibv_rdm_request *request;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if(msg->iov_count != 1 || msg->rma_iov_count != 1) {
+ 		assert(0);
+@@ -346,6 +357,7 @@ fi_ibv_rdm_ep_rma_readv(struct fid_ep *ep, const struct iovec *iov, void **desc,
+ 	};
+ 
+ 	size_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	for (i = 0; i < count; i++) {
+ 		rma_iov.len += iov[i].iov_len;
+ 	}
+@@ -362,6 +374,7 @@ fi_ibv_rdm_ep_rma_read(struct fid_ep *ep_fid, void *buf, size_t len,
+ 		.iov_base = buf,
+ 		.iov_len = len
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_ep_rma_readv(ep_fid, &iov, &desc, 1, src_addr, addr,
+ 					key, context);
+@@ -391,6 +404,7 @@ fi_ibv_rdm_ep_rma_writemsg(struct fid_ep *ep_fid, const struct fi_msg_rma *msg,
+ 		.lkey = (uint64_t)(uintptr_t)(msg->desc ? msg->desc[0] : NULL),
+ 		.op_code = IBV_WR_RDMA_WRITE
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if(msg->iov_count != 1 && msg->rma_iov_count != 1) {
+ 		assert(0);
+@@ -450,6 +464,7 @@ fi_ibv_rdm_ep_rma_writev(struct fid_ep *ep_fid, const struct iovec *iov, void **
+ 	};
+ 
+ 	size_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	for (i = 0; i < count; i++) {
+ 		rma_iov.len += iov[i].iov_len;
+ 	}
+@@ -469,6 +484,7 @@ fi_ibv_rdm_ep_rma_write(struct fid_ep *ep_fid, const void *buf, size_t len,
+ 		.iov_base = (void *)buf,
+ 		.iov_len = len
+ 	};
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	return fi_ibv_rdm_ep_rma_writev(ep_fid, &iov, &desc, 1, dest_addr, addr,
+ 					key, context);
+@@ -496,6 +512,7 @@ static ssize_t fi_ibv_rdm_ep_rma_inject_write(struct fid_ep *ep,
+ 	struct fi_ibv_rdm_request *request =
+ 		util_buf_alloc(ep_rdm->fi_ibv_rdm_request_pool);
+ 
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 	if (OFI_UNLIKELY(!request))
+ 		return -FI_EAGAIN;
+ 
+diff --git a/prov/verbs/src/verbs_srq.c b/prov/verbs/src/verbs_srq.c
+index 6df398c..15afca7 100644
+--- a/prov/verbs/src/verbs_srq.c
++++ b/prov/verbs/src/verbs_srq.c
+@@ -95,6 +95,7 @@ fi_ibv_srq_ep_recvmsg(struct fid_ep *ep, const struct fi_msg *msg, uint64_t flag
+ 	struct fi_ibv_wre *wre;
+ 	struct ibv_sge *sge = NULL;
+ 	size_t i;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	_ep = container_of(ep, struct fi_ibv_srq_ep, ep_fid);
+ 	assert(_ep->srq);
+@@ -137,6 +138,7 @@ fi_ibv_srq_ep_recv(struct fid_ep *ep, void *buf, size_t len,
+ {
+ 	struct iovec iov;
+ 	struct fi_msg msg;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	iov.iov_base = buf;
+ 	iov.iov_len = len;
+@@ -155,6 +157,7 @@ fi_ibv_srq_ep_recvv(struct fid_ep *ep, const struct iovec *iov, void **desc,
+                  size_t count, fi_addr_t src_addr, void *context)
+ {
+ 	struct fi_msg msg;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	msg.msg_iov = iov;
+ 	msg.desc = desc;
+@@ -182,6 +185,7 @@ static int fi_ibv_srq_close(fid_t fid)
+ {
+ 	struct fi_ibv_srq_ep *srq_ep;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	srq_ep = container_of(fid, struct fi_ibv_srq_ep, ep_fid.fid);
+ 	ret = ibv_destroy_srq(srq_ep->srq);
+@@ -220,6 +224,7 @@ int fi_ibv_srq_context(struct fid_domain *domain, struct fi_rx_attr *attr,
+ 	struct fi_ibv_domain *dom;
+ 	struct fi_ibv_srq_ep *srq_ep;
+ 	int ret;
++fprintf(stderr, "%s called\n", __FUNCTION__);
+ 
+ 	if (!domain)
+ 		return -FI_EINVAL;

@@ -1,0 +1,84 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc12-sp2dx/deltafs-umbrella-1.0rc12-sp2dx-TT.tar.gz
+
+
+
+For rc12, our goal for today (if possible) is to try a quick run on KNL 
+using tcp/ip to see if the changes we made for knl is runnable and if 
+they can improve performance.
+
+To do it, we first build it on TT:
+
+module unload cray-hugepage2M
+module swap PrgEnv-intel PrgEnv-gnu
+
+env CC=cc CXX=CC \
+cmake -DSKIP_TESTS=ON -DOFI=ON -DGNI=ON -DVERBS=OFF -DSELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/sep17/r12 \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+
+We will mainly use the bmi+tcp so we could switch OFI off and use Intel 
+CC. But maybe we just stick to gcc from now on....
+
+
+Next we go create the job scripts.
+
+We are gonna do the new sc17k exp run 6. It will use 32 KNL nodes. Each 
+node is gonna run 64 VPIC processes, with 4 other cores dedicated to do 
+system work. We are only gonna run deltafs runs, and skip the baseline.
+
+We won't bypass writes this time. We are also gonna run shuffle.
+
+We run the same sc17k exp run 6 in two different ways: the "normal" way, 
+and the "optimized" way. The optimized way will have half of the ranks 
+to act as sender only, pause bg threads during compute, and force only a 
+single compaction thread.
+
+We first prepare the job script for the normal run.
+
+#!/bin/sh
+
+std="--constraints knl --experiment sc17k --iterations 1 --core-spec 4 \
+--overcommit enable --tag rc12-try1-knlnor --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=0 \
+--env XX_SMP_SH=32 \
+--env XX_NO_PRE_BR=0 \
+--env XX_RR_BG=3
+
+./vpicexpt_gen.pl ${std} --run 6 --dw int
+
+exit 0
+
+
+We then prepare the job script for the optimized run.
+
+#!/bin/sh
+
+std="--constraints knl --experiment sc17k --iterations 1 --core-spec 4 \
+--overcommit enable --tag rc12-try1-knlopt --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=0 \
+--env XX_SMP_SH=32 \
+--env XX_NO_PRE_BR=0 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_RECV_RADIX=1 \
+--env XX_RR_BG=3
+
+./vpicexpt_gen.pl ${std} --run 6 --dw int
+
+exit 0
+
+Before we are able to DOIT, We might also need to manually add 
+--partition knl to sbatch. I remember we need to do it last time.
+
+And after that, we can finally DOIT!
+

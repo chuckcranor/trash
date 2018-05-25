@@ -1,0 +1,86 @@
+
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc24/deltafs-umbrella-1.0rc24-TT.tar.gz
+
+== To compile it on TT with PrgEnv-intel without ofi
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/feb18/r24 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_CHECKSUM=ON \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+
+
+== Or, we can compile with PrgEnv-gnu with ofi (both work for me)
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/feb18/r24 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm;ofi" \
+-DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_CHECKSUM=ON \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+
+== Next, we re-produce the sm error:
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc24-p-3h --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_SH_LOG_FILE=1 \
+--env XX_SH_LBUFTGT=65536 \
+--env XX_SH_LSNDLIMIT=4 \
+--env XX_SH_LMAXRPC=4 \
+--env XX_SH_RSNDLIMIT=4 \
+--env XX_SH_RMAXRPC=4 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SAMP=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+
+eval ../vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+
+# 17b w/ leveldb:
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc24-p-1h-ldb --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+eval ../vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+
+# 17b w/ deltafs lsm:
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc24-p-1h --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+eval ../vpicexpt_gen.pl ${std} --run 6 --dw off .
+

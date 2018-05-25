@@ -1,0 +1,13 @@
+std="--constraints haswell --experiment sc17bj --iterations 1 \
+--overcommit enable --tag rc24-p-1h-ldb-noshuffle --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_BYPASS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+eval ../vpicexpt_gen.pl ${std} --run 1 --dw int .

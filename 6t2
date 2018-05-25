@@ -1,0 +1,17 @@
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc6s-try2 --tests baseline,deltafs \
+--skipreads --env XX_HG_INTERVAL=500 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1"
+
+../vpicexpt_gen.pl ${std} --run 1 --dw off .
+../vpicexpt_gen.pl ${std} --run 4 --dw off .
+../vpicexpt_gen.pl ${std} --run 5 --dw off .
+../vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+exit 0
+
+This time, we call it try2.
+And when we use sbatch to submit the job, we add -S 1 to the sbatch.

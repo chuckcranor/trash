@@ -1,0 +1,45 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc13-sp2dx/deltafs-umbrella-1.0rc13-sp2dx-TT.tar.gz
+
+I guess the first things to do are the #1 and #2 on the list.
+
+1. rerun mercury runner with ofi+tcp (just to see if it is 100 times
+      worse than bmi+tcp). this should be easy and only take 2 nodes.
+
+2. rerun PDSW on haswell with ofi+gni
+
+
+For #2, let's play it safe and ask mercury to do checksums.
+
+module unload cray-hugepage2M
+module swap PrgEnv-intel PrgEnv-gnu
+
+env CC=cc CXX=CC \
+cmake -DSKIP_TESTS=ON -DOFI=ON -DGNI=ON -DVERBS=OFF -DCHECKSUM=ON 
+-DSELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/sep17/r13 \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+
+After that, we can try a single-node run to see if there is still "bad 
+dst"... It will be a shuffle-only and write-bypassing run.
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17x --iterations 1 --core-spec 
+1 \
+--overcommit enable --tag rc13-try1-ofi32k --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_RPC_BUF=32768 \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+
+exit 0
+
+And now we can just DOIT. sign... hope there is no bad dst.....
+

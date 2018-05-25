@@ -1,0 +1,38 @@
+
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc28/deltafs-umbrella-1.0rc28-TT.tar.gz
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/feb18/r28 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_CHECKSUM=ON \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+
+Here's the DOIT
+
+for r in 1 2 3 4 5 6; do
+  # deltafs-imd (less mem, no filter)
+  std="--constraints haswell --experiment sc18a --iterations 1 \
+  --overcommit enable --tag rc28-imd --tests deltafs \
+  --env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+  --env XX_SKIP_SAMP=0 \
+  --env XX_SAMP_TH=1024 \
+  --env XX_SH_THREE_HOP=0 \
+  --env XX_HG_PROTO=bmi+tcp \
+  --env XX_ALWAYS_SHUFFLE=0 \
+  --env XX_BYPASS_CH=1 \
+  --env XX_BG_PAUSE=1 \
+  --env XX_BG_SNGCOMP=1 \
+  --env XX_USE_LEVELDB=0 \
+  --env XX_MEMTABLE_SIZE=8MiB \
+  --env XX_COMP_BUF=0 \
+  --env XX_MAX_DATA_BUF=4MiB \
+  --env XX_MIN_DATA_BUF=3MiB \
+  --env XX_LG_PARTS=0 \
+  --env XX_BF_BITS=0"
+
+  eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+done

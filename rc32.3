@@ -1,0 +1,36 @@
+#All runs use 32 TT nodes.  We skip all reads.  We only do run 3.
+
+#We do 1 iteration for all runs.
+
+for r in 3; do
+# 3-hop
+std="--constraints haswell --experiment sc18c --iterations 1 \
+--overcommit enable --tag rc32-3-hop --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=1 \
+--env XX_SH_LOG_FILE=1 \
+--env XX_SH_THREE_HOP=1 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# 3-hop-bmi-only
+std="--constraints haswell --experiment sc18c --iterations 1 \
+--overcommit enable --tag rc32-3-hop-bmi-only --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=1 \
+--env XX_SH_LOG_FILE=1 \
+--env XX_SH_THREE_HOP=1 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_NX_ONEHG=1 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+done
+

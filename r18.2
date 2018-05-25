@@ -1,0 +1,24 @@
+#Basically, in this new experiment array, all runs from run 1 to run 6 
+#will use 32 nodes, but with increasing number of cores used per node 
+#(ppn), from 1 core per node to 32 cores per node.
+
+#We do
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17bi --iterations 1 \
+--overcommit enable --tag rc18-1h-gni --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+../vpicexpt_gen.pl ${std} --run 1 --dw off .
+../vpicexpt_gen.pl ${std} --run 2 --dw off .
+../vpicexpt_gen.pl ${std} --run 3 --dw off .
+../vpicexpt_gen.pl ${std} --run 4 --dw off .
+../vpicexpt_gen.pl ${std} --run 5 --dw off .
+../vpicexpt_gen.pl ${std} --run 6 --dw off .

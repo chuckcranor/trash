@@ -1,0 +1,81 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc16/deltafs-umbrella-1.0rc16-TT.tar.gz
+
+The goal is to test the new 3-hop shuffle code.
+
+We first build it on TT without OFI, so we can still use Intel cc.
+
+module unload craype-hugepages2M
+# keep PrgEnv-intel
+# keep craype-haswell
+
+env CC=cc CXX=CC \
+cmake -DUMBRELLA_SKIP_TESTS=ON -DUMBRELLA_BUILD_TESTS=OFF \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" -DMERCURY_SELF_FORWARD=ON \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/nov17/r16 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+If the code can compile well, we do 3 runs with "-bind-to core".
+
+#1 deltafs w/ the 1-hop code
+#2 deltafs w/ the 3-hop code
+#3 deltafs w/ the 3-hop code (dq=-1)
+
+All the 3 runs use 32 nodes, and use all 32 cores per node.
+
+So we first generate the job script for #1.
+
+#!/bin/sh
+ 
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc16-1h-btc --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SMP=1"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off --extraopts "--cpu_bind=cores"
+
+// Here rc16-1h-btc means rc16, 1-hop, and bind-to core.
+
+
+
+
+We then generate the job script for #2.
+
+#!/bin/sh
+ 
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc16-3h-btc --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SMP=1"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off --extraopts "--cpu_bind=cores"
+
+
+
+And the job script for #3.
+
+#!/bin/sh
+ 
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc16-3hx-btc --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_SH_DMAX=-1 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SMP=1"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off --extraopts "--cpu_bind=cores"
+

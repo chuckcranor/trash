@@ -1,0 +1,15 @@
+#!/bin/sh
+
+std="--constraints haswell --experiment minimal --iterations 1 \
+--overcommit enable --tag rc16-1h-min --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_RPC_FORCE_SYNC=1 \
+--env XX_RPC_BUF=1024 \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SMP=1"
+
+../vpicexpt_gen.pl ${std} --run 0 --dw off --extraopts "--cpu_bind=cores" .

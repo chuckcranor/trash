@@ -1,0 +1,45 @@
+So this time we will do it on rc7.
+
+First, we wget it and build it on TT:
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc7-sp2dx/deltafs-umbrella-1.0rc7-sp2dx-TT.tar.gz
+
+we can put it on /users/ccranor/aug17/r7
+
+This time, we need to enable cmake self-forwarding so
+
+env CC=cc CXX=CC \
+cmake -DSKIP_TESTS=ON -DVERBS=OFF -DSELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/aug17/r7 \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+After that,
+
+we do
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17x --iterations 1 --core-spec 
+1 \
+--overcommit enable --tag rc7-try1 --tests deltafs \
+--skipreads --env XX_HG_INTERVAL=500 \
+--env XX_RPC_SELF_FORWARD=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+./vpicexpt_gen.pl ${std} --run 4 --dw off
+./vpicexpt_gen.pl ${std} --run 5 --dw off
+./vpicexpt_gen.pl ${std} --run 6 --dw off
+
+exit 0
+
+So basically sc17x is the "core specialized" version of the previous 
+sc17b (changed ppn from 32 to 31).
+
+And this time we can just use "--core-spec 1" to make slurm happy, cool!
+
+A new env "XX_RPC_SELF_FORWARD" is added so the preload code knows it is 
+allowed to send rpcs to itself :-)
+
+We only do deltafs runs and we will skip all reads and writes.

@@ -1,0 +1,26 @@
+#iteration is 1. we manually submit 2 jobs due to the DW issue.
+
+for r in 1 2 3 4 5 6; do
+  # deltafs-imd (less mem, no filter)
+  std="--constraints haswell --experiment sc18a --iterations 1 \
+  --overcommit enable --tag rc27-imd2 --tests deltafs \
+  --env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+  --env XX_SKIP_SAMP=0 \
+  --env XX_SAMP_TH=1024 \
+  --env XX_SH_THREE_HOP=0 \
+  --env XX_HG_PROTO=bmi+tcp \
+  --env XX_ALWAYS_SHUFFLE=0 \
+  --env XX_BYPASS_CH=1 \
+  --env XX_BG_PAUSE=1 \
+  --env XX_BG_SNGCOMP=1 \
+  --env XX_USE_LEVELDB=0 \
+  --env XX_MEMTABLE_SIZE=8MiB \
+  --env XX_COMP_BUF=0 \
+  --env XX_MAX_DATA_BUF=4MiB \
+  --env XX_MIN_DATA_BUF=3MiB \
+  --env XX_LG_PARTS=0 \
+  --env XX_BF_BITS=0"
+
+  eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+done
+

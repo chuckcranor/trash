@@ -1,0 +1,66 @@
+So umbre rc22 is ready
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc22/deltafs-umbrella-1.0rc22-TT.tar.gz
+
+In rc22, mercury has been upgraded to df38b616, the version you have 
+verified a few days ago.
+
+To compile it on TT with PrgEnv-gnu
+
+env CC=cc CXX=CC \
+cmake -DUMBRELLA_SKIP_TESTS=ON \
+-DMERCURY_NA_INITIALLY_ON="bmi;ofi;sm" \
+-DMERCURY_CHECKSUM=ON \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/jan18/r22 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+In this round, we check if a nice() to the looper thread (HG_Progress 
+and HG_Trigger) will make a difference to the overall shuffle perf. We 
+redo the 2-node gni run using the preload-runner and bind-to core. This 
+time, we add rusage mon to the hg_progress(), and apply a nice value to 
+the looper thread.
+
+#!/bin/sh
+std="--constraints haswell --experiment sc17br --iterations 1 \
+--overcommit enable --tag rc22-p-1h-gni-nice --tests deltafs --skipreads 
+\
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_HG_RUSAGE=1 \
+--env XX_HG_NICE=16 \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+eval ../vpicexpt_gen.pl ${std} --run 2 --dw off .
+
+#This is for the ofi+gni run with nice +16 (--env XX_HG_NICE=16) and 
+rusage for the hg_progress (--env XX_HG_RUSAGE=1).
+
+# If nice +16 does not make sense, we can use other nice value.
+
+#!/bin/sh
+std="--constraints haswell --experiment sc17br --iterations 1 \
+--overcommit enable --tag rc22-p-1h-gni --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_HG_RUSAGE=1 \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+eval ../vpicexpt_gen.pl ${std} --run 2 --dw off .
+
+#This is for the ofi+gni run without the nice but still has rusage for 
+the hg_progress.
+

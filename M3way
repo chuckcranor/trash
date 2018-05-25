@@ -1,0 +1,49 @@
+#!/bin/sh  -x
+
+mr=/proj/TableFS/testXYZ/bin/mercury-runner
+xport=bmi+tcp
+###xport=ofi+tcp
+h0=h0
+h1=h1
+sdir=${HOME}/tmp
+xtra="-i 32768"
+
+# 1. direct hostname, bidirectionsal
+        $mr -t 30 -c 3 -m cs $xtra \
+    1 ${xport}://${h0}:6555 ${xport}://${h1}:6556  &
+sleep 1
+ssh $h1 $mr -t 30 -c 3 -m cs $xtra \
+    1 ${xport}://${h1}:6556 ${xport}://${h0}:6555
+
+wait
+echo done PART 1
+sleep 10
+
+# 2. hostnames via shared directory
+        $mr -t 30 -c 3 -m cs -d $sdir ${xtra} 1 h0=${xport} h1 &
+sleep 1
+ssh $h1 $mr -t 30 -c 3 -m cs -d $sdir ${xtra} 1 h1=${xport} h0
+
+wait
+echo done PART 2
+sleep 10
+
+# 3. MPI via command line
+# srun -N 2 -n 2 --ntasks-per-node=1 -w ${h0},${h1}
+mpirun -n 2 -hosts ${h0},${h1} \
+    $mr -M -t 30 -c 3 -m cs ${xtra} \
+    1 ${xport}://${h0}:6555 ${xport}://${h1}:6556
+
+echo done PART 3
+sleep 10
+
+# 4. MPI via command line
+# srun -N 2 -n 2 --ntasks-per-node=1 -w ${h0},${h1}
+mpirun -n 2 -hosts ${h0},${h1} \
+    $mr -M -t 30 -c 3 -m cs -d $sdir ${xtra} \
+    1 h0=${xport} h1 
+
+echo done PART 4
+sleep 10
+
+exit 0

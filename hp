@@ -1,0 +1,15 @@
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17x --iterations 1 --core-spec 
+1 \
+--overcommit enable --tag rc11-try1-ofi32k --tests baseline,deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_RPC_BUF=32768 \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+

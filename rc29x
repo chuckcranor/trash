@@ -1,0 +1,28 @@
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/feb18/r29x \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_SELF_FORWARD=ON \
+-DMERCURY_POST_LIMIT=ON \
+-DMERCURY_CHECKSUM=OFF \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+
+# deltafs-imd-bf (yes filters)
+std="--constraints haswell --experiment sc18b --iterations 1 \
+--overcommit enable --tag rc29x-imd-bf --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=0 \
+--env XX_USE_LEVELDB=0 \
+--env XX_BF_BITS=14"
+
+eval ../vpicexpt_gen.pl ${std} --run 3 --dw int . # we run 3 dumps
+

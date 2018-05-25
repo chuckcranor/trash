@@ -1,0 +1,39 @@
+Here are the steps we need to do to have today's TT run!
+
+Some highlights for today:
+
++ we will only do the shuffle and won't touch any deltafs compaction 
+code
++ we will not write anything out so no need to allocate dw
++ we will not do any reads
++ we will only run deltafs tests
++ we will only do 1 iteration for each run
++ we will do a tiny single-node run first to valid the scripts, and do 4 
+runs after that, using 1, 8, 16, and 32 TT nodes
++ we will still use the 2D conf
++ we will only do 3 dumps and 375 steps
+
+OK!
+
+1. First, let's wget the umbrella package to TT
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc4-sp2dx/deltafs-umbrella-1.0rc4-sp2dx-TT.tar.gz
+
+2. Second, untar the package and do a make on TT
+
+3. let's do this:
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+      --overcommit enable --tag try7 --tests deltafs \
+      --skipreads --env XX_BYPASS_WRITE=1 --env XX_SKIP_MON=0"
+
+./vpicexpt_gen.pl ${std} --run 0 --dw off .
+./vpicexpt_gen.pl ${std} --run 1 --dw off .
+./vpicexpt_gen.pl ${std} --run 4 --dw off .
+./vpicexpt_gen.pl ${std} --run 5 --dw off .
+./vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+exit 0
+
+4. I think we can just DO IT !

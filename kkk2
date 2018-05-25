@@ -1,0 +1,30 @@
+# module unload craype-hugepages2M  # no typo!!!
+# module swap craype-haswell craype-mic-knl
+# PrgEnv-intel is there
+
+Next, we cd into r15k and do
+
+#!/bin/sh
+
+std="--partition knl --constraints knl,quad,cache --experiment sc17k 
+--iterations 1 --core-spec 4 \
+--overcommit enable --tag rc15k-try1-knl --tests baseline,deltafs 
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=2MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_INDEX_BUF=1MiB \
+--env XX_MAX_INDEX_BUF=1MiB"
+
+./vpicexpt_gen.pl ${std} --run 2 --dw int
+./vpicexpt_gen.pl ${std} --run 3 --dw int
+./vpicexpt_gen.pl ${std} --run 4 --dw int
+./vpicexpt_gen.pl ${std} --run 5 --dw int
+
+That will be all we gonna run.
+

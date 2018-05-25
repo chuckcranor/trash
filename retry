@@ -1,0 +1,33 @@
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17bx --iterations 1 \
+--overcommit enable --tag rc17-1h-bmi-x --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off
+
+#This is for the bmi+tcp run.
+
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17bx --iterations 1 \
+--overcommit enable --tag rc17-1h-gni-x --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off
+
+
+#This is for the ofi+gni run.

@@ -1,0 +1,23 @@
+rc30 is here:
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc30/deltafs-umbrella-1.0rc30-TT.tar.gz
+
+We use rc30 to do some init runs for KNL.
+
+We first compile it on KNL using PrgEnv-intel.
+
+salloc 1 KNL node
+....
+
+module swap craype-haswell craype-mic-knl
+module list
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/feb18/r30 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_CHECKSUM=ON \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+

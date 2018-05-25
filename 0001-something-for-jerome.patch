@@ -1,0 +1,34 @@
+./configure --prefix=$HOME/apps/libfabric/1.6.0a1_${rev} \ 
+  --disable-verbs --disable-shm --disable-udp --disable-tcp \
+  --disable-rxm --disable-rxd --disable-usnic --disable-silent-rules \
+  CFLAGS="-O2 -g -fno-omit-frame-pointer"
+
+
+From 44fcc0aec83882cead76d04abb60883654041e5c Mon Sep 17 00:00:00 2001
+From: Howard Pritchard <howardp@lanl.gov>
+Date: Mon, 30 Oct 2017 19:11:32 -0700
+Subject: [PATCH] something for jerome
+
+Signed-off-by: Howard Pritchard <howardp@lanl.gov>
+
+diff --git a/prov/gni/src/gnix_mr_cache.c b/prov/gni/src/gnix_mr_cache.c
+index 87d4e33c..2de52de8 100644
+--- a/prov/gni/src/gnix_mr_cache.c
++++ b/prov/gni/src/gnix_mr_cache.c
+@@ -1533,11 +1533,13 @@ int _gnix_mr_cache_register(
+ 
+ 	GNIX_TRACE(FI_LOG_MR, "\n");
+ 
++#if 0
+ 	/* fastpath inuse */
+ 	ret = __mr_cache_search_inuse(cache, address, length,
+ 			&entry, &key, fi_reg_context);
+ 	if (ret == FI_SUCCESS)
+ 		goto success;
++#endif
+ 
+ 	/* if we shouldn't introduce any new elements, return -FI_ENOSPC */
+ 	if (OFI_UNLIKELY(cache->attr.hard_reg_limit > 0 &&
+-- 
+2.4.0.rc3.16.g0ab00b9
+

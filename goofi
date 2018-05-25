@@ -1,0 +1,5 @@
+srun -n 2 -N 2 --ntasks-per-node=1 -w nid00012,nid00014 \
+ /users/ccranor/dec17/ofi/bin/mercury-runner -c 100000 -l 4 -M -q -r 1 \
+ -s /lustre/ttscratch1/ccranor/ofi-log.txt \
+  -t 180 -i 3 2768 -m s 1 ofi+gni://11.128.0.13:%d ofi+gni://11.128.0.15:%d
+

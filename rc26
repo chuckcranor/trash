@@ -1,0 +1,80 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc26/deltafs-umbrella-1.0rc26-TT.tar.gz
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/feb18/r26 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_CHECKSUM=ON \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+
+
+
+# Here is the DOIT for the first 4 runs (revised)
+
+# deltafs-imd
+std="--constraints haswell --experiment sc18a0 --iterations 2 \
+--overcommit enable --tag rc26-imd --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=0 \
+--env XX_SAMP_TH=1024 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=0"
+
+eval ../vpicexpt_gen.pl ${std} --run 4 --dw int .
+
+# leveldb (no shuffle, yes compaction)
+std="--constraints haswell --experiment sc18a0 --iterations 2 \
+--overcommit enable --tag rc26-ldb --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=0 \
+--env XX_SAMP_TH=1024 \
+--env XX_BYPASS_SHUFFLE=1 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=1 \
+--env XX_ENV_NAME=posix.default"
+
+eval ../vpicexpt_gen.pl ${std} --run 4 --dw int .
+
+# leveldb+shuffle (yes shuffle, yes compaction)
+std="--constraints haswell --experiment sc18a0 --iterations 2 \
+--overcommit enable --tag rc26-ldb-sh --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=0 \
+--env XX_SAMP_TH=1024 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=1 \
+--env XX_ENV_NAME=posix.default"
+
+eval ../vpicexpt_gen.pl ${std} --run 4 --dw int .
+
+# leveldb+shuffle+nocompactions (yes shuffle, no compaction)
+std="--constraints haswell --experiment sc18a0 --iterations 2 \
+--overcommit enable --tag rc26-ldb-sh-nocomp --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=0 \
+--env XX_SAMP_TH=1024 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BG_PAUSE=1 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=1 \
+--env XX_ENV_NAME=posix.default \
+--env XX_LEVELDB_L0ONLY=1"
+
+eval ../vpicexpt_gen.pl ${std} --run 4 --dw int .

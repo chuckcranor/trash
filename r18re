@@ -1,0 +1,43 @@
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17bi --iterations 1 \
+--overcommit enable --tag rc18-1h16k-gni --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_RPC_BUF=16000 \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+./vpicexpt_gen.pl ${std} --run 2 --dw off
+./vpicexpt_gen.pl ${std} --run 3 --dw off
+./vpicexpt_gen.pl ${std} --run 4 --dw off
+./vpicexpt_gen.pl ${std} --run 5 --dw off
+./vpicexpt_gen.pl ${std} --run 6 --dw off
+
+#Gonna run for a while though, and after the gni batch is over, we redo 
+#.the bmi+tcp runs for comparison.
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17bi --iterations 1 \
+--overcommit enable --tag rc18-1h16k-bmi --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_RPC_BUF=16000 \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+./vpicexpt_gen.pl ${std} --run 2 --dw off
+./vpicexpt_gen.pl ${std} --run 3 --dw off
+./vpicexpt_gen.pl ${std} --run 4 --dw off
+./vpicexpt_gen.pl ${std} --run 5 --dw off
+./vpicexpt_gen.pl ${std} --run 6 --dw off
+

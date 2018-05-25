@@ -1,0 +1,29 @@
+#The next step is to determine a good outstanding rpc number for the 
+#local hop. Our current limit is 16 per outgoing queue. So let's keep 
+#that but add a 2nd limit at the per-core mercury instance level 
+#(lrpclimit).
+
+#!/bin/sh
+
+for rpc_limit in 16 32 64 128 256; do
+  std="--constraints haswell --experiment sc17bo --iterations 1 \
+--overcommit enable --tag rc23-p-3h-64k${rpc_limit}rpc --tests deltafs \
+--postruncmd 'vpic_cleanup.pl --logstats' \
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_SH_LOG_FILE=1 \
+--env XX_SH_LBUFTGT=65536 \
+--env XX_SH_LSNDLIMIT=${rpc_limit} \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+  eval ../vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+done

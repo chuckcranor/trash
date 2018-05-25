@@ -1,0 +1,6 @@
+cd $JOBDIRHOME
+rm -rf `find . -name exp-info/NAMES-\*`
+rm -rf `find . -name vpic`
+rm -rf `find . -name bb`
+rm -rf `find . -name cur\*`
+

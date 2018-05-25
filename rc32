@@ -1,0 +1,66 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc32/deltafs-umbrella-1.0rc32-TR-v1.tar.gz
+
+Compile Code
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/mar18/r32 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_CHECKSUM=ON \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+
+
+Job Scripts for LevelDB/IMD Runs (Section 4)
+
+For this set of runs, we compare vpic-baseline with imd, imd-bf , ldb-nocomp, and ldb-nocomp-bf (ldb=leveldb, bf=bloom filter, nocomp=no compaction). We have already finished all imd and imd-bf runs. So this time we only do the leveldb and baseline runs.
+
+All runs use 32 TT nodes. We do run 1 to run 5, skipping run 6.
+
+for r in 1 2 3 4 5;  do
+# ldb-sh-nocomp (yes shuffle, no compaction, no filters)
+std="--constraints haswell --experiment sc18b --iterations 1 \
+--overcommit enable --tag rc32-ldb-sh-nocomp --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=1 \
+--env XX_ENV_NAME=posix.default \
+--env XX_LEVELDB_L0ONLY=1
+--env XX_LEVELDB_WITHBF=0
+--env XX_BF_BITS=0"
+ 
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# ldb-sh-nocomp-bf (yes shuffle, no compaction, yes filters)
+std="--constraints haswell --experiment sc18b --iterations 1 \
+--overcommit enable --tag rc32-ldb-sh-nocomp-bf --tests deltafs \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_USE_LEVELDB=1 \
+--env XX_ENV_NAME=posix.default \
+--env XX_LEVELDB_L0ONLY=1
+--env XX_LEVELDB_WITHBF=1
+--env XX_BF_BITS=12"
+ 
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# vpic-baseline
+std="--constraints haswell --experiment sc18b --iterations 1 \
+--overcommit enable --tag rc32-vpic --tests baseline \
+--env XX_IGNORE_DIRS=fields:hydro:rundata"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+done

@@ -1,0 +1,68 @@
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc17-1h-btc --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+../vpicexpt_gen.pl ${std} --run 6 --dw off --extraopts "--cpu_bind=cores" .
+
+
+
+#We then generate the job script for #2.
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc17-3h-btc --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+../vpicexpt_gen.pl ${std} --run 6 --dw off --extraopts "--cpu_bind=cores" .
+
+
+
+#And the job script for #3.
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc17-3h-btc-nodq --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_SH_DMAX=-1 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+../vpicexpt_gen.pl ${std} --run 6 --dw off --extraopts "--cpu_bind=cores" .
+
+
+To turn off the 256 limit in mercury, we do
+
+module unload craype-hugepages2M
+# keep PrgEnv-intel
+# keep craype-haswell
+
+env CC=cc CXX=CC \
+cmake -DUMBRELLA_SKIP_TESTS=ON -DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_SELF_FORWARD=ON -DMERCURY_CHECKSUM=ON \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/nov17/r17-nopl \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+
+So the added part is "-DMERCURY_POST_LIMIT=OFF"

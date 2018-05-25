@@ -1,0 +1,94 @@
+#Here they are!
+
+for r in 3; do
+# imd (1 compaction thread, 1-way memtable)
+std="--partition knl --constraints knl,snc4,flat --experiment sc18k 
+--iterations 1 --core-spec 4 \
+--overcommit enable --tag rc32-imd --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=1 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_RECV_RADIX=0 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=0 \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_LG_PARTS=0 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# imd-half (half ranks are sender only)
+std="--partition knl --constraints knl,snc4,flat --experiment sc18k 
+--iterations 1 --core-spec 4 \
+--overcommit enable --tag rc32-imd-half --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=1 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=1 \
+--env XX_RECV_RADIX=1 \
+--env XX_MEMTABLE_SIZE=48MiB \
+--env XX_COMP_BUF=0 \
+--env XX_MAX_DATA_BUF=8MiB \
+--env XX_MIN_DATA_BUF=6MiB \
+--env XX_LG_PARTS=0 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+
+# imd-par (4 compaction threads, 4-way memtable)
+std="--partition knl --constraints knl,snc4,flat --experiment sc18k 
+--iterations 1 --core-spec 4 \
+--overcommit enable --tag rc32-imd-par --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=1 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=0 \
+--env XX_RECV_RADIX=0 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=2MiB \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_LG_PARTS=2 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# imd-both (with both enabled)
+std="--partition knl --constraints knl,snc4,flat --experiment sc18k 
+--iterations 1 --core-spec 4 \
+--overcommit enable --tag rc32-imd-both --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SKIP_SAMP=1 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=0 \
+--env XX_RECV_RADIX=1 \
+--env XX_MEMTABLE_SIZE=48MiB \
+--env XX_COMP_BUF=4MiB \
+--env XX_MAX_DATA_BUF=8MiB \
+--env XX_MIN_DATA_BUF=6MiB \
+--env XX_LG_PARTS=2 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+done
+

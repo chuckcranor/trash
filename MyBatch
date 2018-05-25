@@ -1,0 +1,34 @@
+#!/bin/csh -f
+
+set out=/proj/TableFS/testHD3/src/nexus-runner/REPEAT.dir
+mkdir -p $out
+
+echo doing a run...
+
+
+# 32K, 1 rpc, 256 deliverq
+./REPEATIT 72 4000000 32768 1 256 u  | tee -a $out/sm-32k-1-256.log
+
+# 32K, 1 rpc, disable delivery
+./REPEATIT 72 4000000 32768 1 -1  u  | tee -a $out/sm-32k-1-dis.log
+
+# 32K, 16 rpc, disable delivery
+./REPEATIT 72 4000000 32768 16 -1 u  | tee -a $out/sm-32k-16-dis.log
+
+# 32K, 16 rpc, 116736 delivery
+./REPEATIT 72 4000000 32768 16 116736 u | tee -a $out/sm-32k-16-116736.log
+
+
+# 32K, 1 rpc, 256 deliverq
+./REMOTEIT h0 h1 72 4000000 32768 1 256 u | tee -a $out/tcp-32k-1-256.log
+
+# 32K, 1 rpc, disable delivery
+./REMOTEIT h0 h1 72 4000000 32768 1 -1 u | tee -a $out/tcp-32k-1-dis.log
+
+# 32K, 16 rpc, disable delivery
+./REMOTEIT h0 h1 72 4000000 32768 16 -1 u | tee -a $out/tcp-32k-16-dis.log
+
+# 32K, 16 rpc, 116736 delivery
+./REMOTEIT h0 h1 72 4000000 32768 16 116736 u | tee -a $out/tcp-32k-16-116736.log
+
+exit 0

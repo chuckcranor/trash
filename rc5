@@ -1,0 +1,28 @@
+The rc5 package are here:
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc5-sp2dx/deltafs-umbrella-1.0rc5-sp2dx-TT.tar.gz
+
+Let's wget it to TT and build it!
+
+Then, we do
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+      --overcommit enable --tag try10 --tests deltafs \
+      --skipreads --env XX_BYPASS_WRITE=1 --env XX_RPC_BUF=49152"
+
+./vpicexpt_gen.pl ${std} --run 0 --dw off .
+./vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+exit 0
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+      --overcommit enable --tag try11 --tests deltafs \
+      --skipreads --env XX_BYPASS_WRITE=1 --env XX_RPC_BUF=57344"
+
+./vpicexpt_gen.pl ${std} --run 0 --dw off .
+./vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+exit 0

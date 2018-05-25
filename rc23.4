@@ -1,0 +1,28 @@
+#!/bin/sh
+
+for outs in 12 16 20; do
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc23-p-3h-${outs}outs --tests deltafs \
+--postruncmd 'vpic_cleanup.pl --logstats' \
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_SH_LOG_FILE=1 \
+--env XX_SH_LBUFTGT=65536 \
+--env XX_SH_LSNDLIMIT=4 \
+--env XX_SH_LMAXRPC=2 \
+--env XX_SH_RSNDLIMIT=${outs} \
+--env XX_SH_RMAXRPC=${outs} \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1 \
+--env VPIC_EMU=preload-runner \
+--env 'VPIC_EMU_OPTS=-t 1800' \
+--env VPIC_PRE="
+
+eval ../vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+done
+

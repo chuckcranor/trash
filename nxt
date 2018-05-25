@@ -1,0 +1,22 @@
+1. go to our deltafs umbrella rc4 install dir, open the common.sh
+
+insert a new line after here:
+https://github.com/pdlfs/deltafs-umbrella/blob/master/scripts/common.sh.in#L776
+"SHUFFLE_Num_outstanding_rpc" "128"
+
+2. do this
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag try9 --tests deltafs \
+--skipreads --env XX_BYPASS_WRITE=1 --env XX_SKIP_MON=0 \
+--env XX_RPC_BUF=32768"
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+exit 0
+
+We still keep the rpc buffer size at 32K.
+
+3. now we can DO IT!

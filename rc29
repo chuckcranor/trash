@@ -1,0 +1,33 @@
+rc29 is here:
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc29/deltafs-umbrella-1.0rc29-TT.tar.gz
+
+We first compile it on TT with PrgEnv-intel
+
+env CC=cc CXX=CC cmake \
+-DCMAKE_INSTALL_PREFIX=/users/ccranor/feb18/r29 \
+-DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DMERCURY_NA_INITIALLY_ON="bmi;sm" \
+-DMERCURY_POST_LIMIT=OFF \
+-DMERCURY_CHECKSUM=ON \
+-DUMBRELLA_SKIP_TESTS=ON \
+..
+
+
+We first do a quick test on the datawarp. Last time, we asked 5TiB BB 
+storage and got 2 BB nodes. I plan to know if it is possible for us to 
+get exactly 1 BB node.
+
+The experiment for it is dwtest. They are all 1-node jobs each 
+allocating a different amount of BB space.
+
+std="--constraints haswell --experiment dwtest --iterations 1 \
+--overcommit enable --tag rc29-dw --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_BYPASS_SHUFFLE=1 \
+--env XX_BYPASS_WRITE=1"
+
+eval ../vpicexpt_gen.pl ${std} --run 2 --dw int . # Alloc 2TiB
+eval ../vpicexpt_gen.pl ${std} --run 3 --dw int . # Alloc 3TiB
+eval ../vpicexpt_gen.pl ${std} --run 4 --dw int . # Alloc 4TiB
+

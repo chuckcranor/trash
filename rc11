@@ -1,0 +1,42 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc11-sp2dx/deltafs-umbrella-1.0rc11-sp2dx-TT.tar.gz
+
+The goal is to rerun the 1-hop code with ofi+gni.
+
+We first build it on TT with ofi.
+
+env CC=cc CXX=CC \
+cmake -DSKIP_TESTS=ON -DOFI=ON -DGNI=ON -DVERBS=OFF -DSELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/sep17/r11 \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+The first thing we need to do is to determine the right rpc buf size for 
+ofi+gni.
+
+So we are gonna run the old sc17x exp run 6. It will use 32 nodes. We 
+bypass writes and run only the shuffle. We also dedicate 1 core to do 
+system stuff. We run deltafs only -- no need to run baseline.
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17x --iterations 1 --core-spec 
+1 \
+--overcommit enable --tag rc11-try1-ofi32k --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_RPC_BUF=32768 \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1
+
+./vpicexpt_gen.pl ${std} --run 6 --dw off
+
+exit 0
+
+This will be a 32k-rpc-buf run.
+
+We then change XX_RPC_BUF to 16384 and 8192 to see if performance 
+changes.
+
+

@@ -1,0 +1,96 @@
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc15-sp2dx/deltafs-umbrella-1.0rc15-sp2dx-TT.tar.gz
+
+We first compile the code for Haswell (for exp 1-4)
+
+module unload cray-hugepage2M
+# keep PrgEnv-intel
+# keep craype-haswell
+
+env CC=CC CXX=CC \
+cmake -DUMBRELLA_SKIP_TESTS=ON \
+       -DMERCURY_NA_INITIALLY_ON="bmi;sm" -DMERCURY_SELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/oct17/r15 \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+
+
+Next, we generate the job script for exp 1-2.
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17x --iterations 1 --core-spec 
+1 \
+--overcommit enable --tag rc15-try1-hsw --tests baseline,deltafs 
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1
+
+./vpicexpt_gen.pl ${std} --run 1 --dw int
+
+
+Next, we generate the job script for exp 3-4.
+or KNL runs, we also need to do --constraints knl,quad,cache
+
+#!/bin/sh
+
+std="--partition knl --constraints knl,quad,cache --experiment sc17k --iterations 1 
+--core-spec 4 \
+--overcommit enable --tag rc15-try1-knl --tests baseline,deltafs 
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=2MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_INDEX_BUF=1MiB \
+--env XX_MAX_INDEX_BUF=1MiB"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw int
+
+
+
+
+
+We then compile the code for KNL (for exp 5-6)
+
+# keep PrgEnv-intel
+module swap craype-haswell craype-mic-knl
+
+env CC=CC CXX=CC \
+cmake -DUMBRELLA_SKIP_TESTS=ON \
+       -DMERCURY_NA_INITIALLY_ON="bmi;sm" -DMERCURY_SELF_FORWARD=ON \
+       -DCMAKE_INSTALL_PREFIX=/users/ccranor/oct17/r15k \
+       -DCMAKE_SYSTEM_NAME=CrayLinuxEnvironment \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+
+
+Finally, we generate the job script for exp 5-6.
+
+#!/bin/sh
+
+std="--partition knl --constraints knl,quad,cache --experiment sc17k --iterations 1 
+--core-spec 4 \
+--overcommit enable --tag rc15k-try1-knl --tests baseline,deltafs 
+--skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_NO_DIRECT_WRITE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=1 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=2MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_INDEX_BUF=1MiB \
+--env XX_MAX_INDEX_BUF=1MiB"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw int
+

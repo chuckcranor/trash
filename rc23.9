@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# 17b 1-hop
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc23-1h --tests deltafs --skipreads \
+--postruncmd 'vpic_cleanup.pl --logstats' \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_RPC_DEPTH=4 \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SAMP=1"
+
+eval ../vpicexpt_gen.pl ${std} --run 6 --dw int .
+
+# 17bx 1-hop
+std="--constraints haswell --experiment sc17bx --iterations 1 \
+--overcommit enable --tag rc23-1h --tests deltafs --skipreads \
+--postruncmd 'vpic_cleanup.pl --logstats' \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_RPC_DEPTH=4 \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SAMP=1"
+
+eval ../vpicexpt_gen.pl ${std} --core-spec 1 --run 6 --dw int .
+

@@ -1,0 +1,48 @@
+The new perl conf array is here:
+https://github.com/pdlfs/deltafs-umbrella/commit/61dd4c3522a7d00fb1e5d36043687581b84cd5a0
+
+To fetch the latest vpicexpt_gen.pl.in on TT, we do
+wget 
+https://raw.githubusercontent.com/pdlfs/deltafs-umbrella/61dd4c3522a7d00fb1e5d36043687581b84cd5a0/scripts/vpicexpt_gen.pl.in
+
+rm scripts
+make scripts
+
+Then, we do gni runs
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17br --iterations 1 \
+--overcommit enable --tag rc18-1h-gni --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=ofi+gni \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+./vpicexpt_gen.pl ${std} --run 2 --dw off #  2 nodes
+./vpicexpt_gen.pl ${std} --run 3 --dw off #  4 nodes
+./vpicexpt_gen.pl ${std} --run 4 --dw off #  8 nodes
+./vpicexpt_gen.pl ${std} --run 5 --dw off # 16 nodes
+
+Then, we do the bmi runs
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17br --iterations 1 \
+--overcommit enable --tag rc18-1h-bmi --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_SKIP_SAMP=1"
+
+./vpicexpt_gen.pl ${std} --run 2 --dw off # 2 nodes
+./vpicexpt_gen.pl ${std} --run 3 --dw off # 4 nodes
+./vpicexpt_gen.pl ${std} --run 4 --dw off # 8 nodes
+./vpicexpt_gen.pl ${std} --run 5 --dw off # 16 nodes
+

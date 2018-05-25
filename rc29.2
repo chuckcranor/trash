@@ -1,0 +1,38 @@
+Here's the new vpicexpt_gen.pl.in
+https://raw.githubusercontent.com/pdlfs/deltafs-umbrella/master/scripts/vpicexpt_gen.pl.in
+
+
+The new sc18b:
+
+# sc18b: for the sc18 parctive paper
+@sc18b = (
+# vpic vpic max base
+# nodes, dumps, steps, px, py, pz, tx, ty, tz, ppn, time, xtra, dwsize
+[ 1, 2, 50, 4, 2, 0, 0, 1, 1, 32, 10, 1, "32GiB"],
+[ 32, 1, 25, 4, 4, 0, 0, 1, 1, 32, 120, 10, "3072GiB"],
+[ 32, 2, 50, 4, 4, 0, 0, 1, 1, 32, 120, 10, "3072GiB"],
+[ 32, 3, 75, 4, 4, 0, 0, 1, 1, 32, 120, 10, "3072GiB"],
+[ 32, 4, 100, 4, 4, 0, 0, 1, 1, 32, 120, 10, "3072GiB"],
+[ 32, 5, 125, 4, 4, 0, 0, 1, 1, 32, 120, 10, "3072GiB"],
+[ 32, 6, 150, 4, 4, 0, 0, 1, 1, 32, 120, 10, "3072GiB"],
+);
+
+
+
+Now let's try a deltafs.
+
+# deltafs-imd-bf (yes filters)
+std="--constraints haswell --experiment sc18b --iterations 1 \
+--overcommit enable --tag rc29-imd-bf --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BG_SNGCOMP=0 \
+--env XX_USE_LEVELDB=0 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run 3 --dw int .   # we run 3 dumps

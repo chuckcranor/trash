@@ -1,0 +1,22 @@
+#!/bin/sh
+#SBATCH --job-name nexusrun
+#SBATCH --time=0:03:00
+#SBATCH --nodes=1
+#SBATCH --constraint=haswell
+#SBATCH --output /users/%u/joblogs/nexusrun-%j.out
+
+# uncomment this to use something other than na+sm for local hops
+###export NEXUS_ALT_LOCAL=ofi+tcp
+
+# NOTE-3: max value for "-n" is 32 on haswell
+# NOTE-4: update "${HOME}/tmp/hgtest" to match install dir for nexus-runner
+srun -N 1 -n 24 --cpu_bind=core \
+  ${HOME}/tmp/hgtest/bin/nexus-runner \
+  -q -c 16000000 \
+  -t 600 -B 32768 -a 65536 -b 65536 \
+  -d -1 -h 1024 \
+  -M 4 -m 4 -y 4 \
+  -Z 4 -z 4 -i 72 \
+  bmi+tcp 11
+
+exit 0

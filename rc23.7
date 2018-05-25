@@ -1,0 +1,44 @@
+#We do two runs. The first is 32-node 32-ppn without dedicating any cores 
+#(sc17b run 6). The second is 33-node 31-ppn with 1 core dedicated per 
+#node (sc17bx run 6).
+
+#!/bin/sh
+
+# 17b
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc23-p-3h --tests deltafs --skipreads \
+--postruncmd 'vpic_cleanup.pl --logstats' \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_SH_LOG_FILE=1 \
+--env XX_SH_LBUFTGT=65536 \
+--env XX_SH_LSNDLIMIT=4 \
+--env XX_SH_LMAXRPC=4 \
+--env XX_SH_RSNDLIMIT=4 \
+--env XX_SH_RMAXRPC=4 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SAMP=1"
+
+eval ../vpicexpt_gen.pl ${std} --run 6 --dw off .
+
+# 17bx
+std="--constraints haswell --experiment sc17bx --iterations 1 \
+--overcommit enable --tag rc23-p-3h --tests deltafs --skipreads \
+--postruncmd 'vpic_cleanup.pl --logstats' \
+--env XX_IGNORE_DIRS=fields:hydro:rundata:names \
+--env XX_SH_THREE_HOP=1 \
+--env XX_SH_LOG_FILE=1 \
+--env XX_SH_LBUFTGT=65536 \
+--env XX_SH_LSNDLIMIT=4 \
+--env XX_SH_LMAXRPC=4 \
+--env XX_SH_RSNDLIMIT=4 \
+--env XX_SH_RMAXRPC=4 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SAMP=1"
+
+eval ../vpicexpt_gen.pl ${std} --core-spec 1 --run 6 --dw off .
+

@@ -1,0 +1,52 @@
+@sc17k = (
+     #          vpic   vpic                       max  base
+     #  nodes, dumps, steps,  px,  py,  pz, ppn, time, xtra,     dwsize
+     [      1,     2,   300,   4,   2,   0,  64,   10,    1,    "32GiB"], 
+  # run 0
+     [      1,     5,   750,   8,   4,   0,  64,  135,    1,   "160GiB"], 
+  # run 1
+     [      2,     5,   750,   8,   4,   0,  64,  135,    2,   "320GiB"], 
+  # run 2
+     [      4,     5,   750,   8,   4,   0,  64,  135,    3,   "640GiB"], 
+  # run 3
+     [      8,     5,   750,   8,   4,   0,  64,  135,    4,  "1280GiB"], 
+  # run 4
+     [     16,     5,   750,   8,   4,   0,  64,  135,    5,  "2560GiB"], 
+  # run 5
+     [     32,     5,   750,   8,   4,   0,  64,  140,   10,  "5120GiB"], 
+  # run 6
+     [     64,     5,   750,   8,   4,   0,  64,  145,   20, "10240GiB"], 
+  # run 7
+     [     96,     5,   750,   8,   4,   0,  64,  150,   40, "15360GiB"], 
+  # run 8
+     );
+
+
+
+
+#!/bin/sh
+
+std="--constraints knl --experiment sc17k --iterations 1 --core-spec 4 \
+--overcommit enable --tag rc9-knl1 --tests baseline,deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_HG_INTERVAL=1000 \
+--env XX_RPC_SELF_FORWARD=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_SKIP_SMP=0 \
+--env XX_SMP_TH=32 \
+--env XX_RR_BG=5 \
+--env XX_MEMTABLE_SIZE=24MiB \
+--env XX_COMP_BUF=2MiB \
+--env XX_MIN_DATA_BUF=3MiB \
+--env XX_MAX_DATA_BUF=4MiB \
+--env XX_MIN_INDEX_BUF=1MiB \
+--env XX_MAX_INDEX_BUF=1MiB"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw int
+./vpicexpt_gen.pl ${std} --run 2 --dw int
+./vpicexpt_gen.pl ${std} --run 3 --dw int
+./vpicexpt_gen.pl ${std} --run 4 --dw int
+./vpicexpt_gen.pl ${std} --run 5 --dw int
+./vpicexpt_gen.pl ${std} --run 6 --dw int
+./vpicexpt_gen.pl ${std} --run 7 --dw int
+./vpicexpt_gen.pl ${std} --run 8 --dw int

@@ -1,0 +1,35 @@
+rc6 is ready!
+
+The package is here:
+https://github.com/zhengqmark/deltafs-umbrella/releases/download/1.0-rc6-sp2dx/deltafs-umbrella-1.0rc6-sp2dx-TTs.tar.gz
+
+The tar name is deltafs-umbrella-1.0rc6-sp2dx-TTs.tar.gz
+
+There is an "s" after "TT", which indicates this package is desired for 
+core specialization (ppn is set to 31).
+
+So we first wget and build it on TT.
+
+I think maybe you can put it under /users/ccranor/aug17/r6s ^_^
+
+This time, nexus will also participate in the build.
+
+I tried it on Travis and it worked, though nexus tests wouldn't work so 
+I disabled it.
+
+After that, we will do
+
+#!/bin/sh
+
+std="--constraints haswell --experiment sc17b --iterations 1 \
+--overcommit enable --tag rc6s-try1 --tests baseline,deltafs \
+--skipreads --env XX_HG_INTERVAL=500 \
+--env XX_BYPASS_WRITE=1 \
+--env XX_BYPASS_CH=1"
+
+./vpicexpt_gen.pl ${std} --run 1 --dw off
+./vpicexpt_gen.pl ${std} --run 4 --dw off
+./vpicexpt_gen.pl ${std} --run 5 --dw off
+./vpicexpt_gen.pl ${std} --run 6 --dw off
+
+exit 0

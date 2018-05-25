@@ -1,0 +1,72 @@
+#All runs use 32 TT nodes.  For vpic, imd-nosh, and imd, we do run 3 only.  For the slower imd-1k and imd-4k, we skip all reads, and do run 1 only.
+
+#We do 1 iteration for all runs.
+
+for r in 3; do
+# imd-nosh
+std="--constraints haswell --experiment sc18c --iterations 1 \
+--overcommit enable --tag rc32-imd-nosh --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_BYPASS_SHUFFLE=1 \
+--env XX_BYPASS_CH=1 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# imd
+std="--constraints haswell --experiment sc18c --iterations 1 \
+--overcommit enable --tag rc32-imd --tests deltafs \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# vpic
+std="--constraints haswell --experiment sc18c --iterations 1 \
+--overcommit enable --tag rc32-vpic --tests baseline \
+--env XX_IGNORE_DIRS=fields:hydro:rundata"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+done
+
+for r in 1; do
+# imd-1k
+std="--constraints haswell --experiment sc18c --iterations 1 \
+--overcommit enable --tag rc32-imd-1k --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_BUF=1024 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+# imd-4k
+std="--constraints haswell --experiment sc18c --iterations 1 \
+--overcommit enable --tag rc32-imd-4k --tests deltafs --skipreads \
+--env XX_IGNORE_DIRS=fields:hydro:rundata \
+--env XX_SKIP_SAMP=0 \
+--env XX_SH_THREE_HOP=0 \
+--env XX_HG_PROTO=bmi+tcp \
+--env XX_ALWAYS_SHUFFLE=0 \
+--env XX_BYPASS_CH=1 \
+--env XX_RPC_BUF=4096 \
+--env XX_RPC_DEPTH=16 \
+--env XX_BF_BITS=12"
+
+eval ../vpicexpt_gen.pl ${std} --run $r --dw int .
+
+done
+
