@@ -1,0 +1,111 @@
+#!/bin/sh
+#
+# test-dynlink  test system for default dynamic link params
+# 17-Jun-2020  chuck@ece.cmu.edu
+#
+
+#
+# the idea here is to print the default values, but you can also override
+# defaults with environment variables like this:
+# 
+#    env XTRAFLAGS="-Wl,--enable-new-dtags" XTRALDFLAGS="--enable-new-dtags"
+#    env XTRAFLAGS="-Wl,--disable-new-dtags" XTRALDFLAGS="--disable-new-dtags"
+#    env XTRAFLGAS="-Wl,--as-needed"
+#    env XTRAFLGAS="-Wl,--no-as-needed"
+#
+
+echo ""
+echo "testing dynamic linking defaults on `hostname`"
+date
+echo ""
+
+# establish defaults
+base=`pwd`
+CC=${CC-cc}
+LD=${LD-ld}
+OBJDUMP=${OBJDUMP-objdump}
+PICFLAG=${PICFLAG-"-fpic"}
+RPATHFLAG=${RPATHFLAG-"-Wl,-rpath="}
+RPATHLDFLAG=${RPATHLDFLAG-"-rpath="}
+SHAREDFLAG=${SHAREDFLAG-"-shared"}
+XTRAFLAGS=${XTRAFLAGS}
+XTRALDFLAGS=${XTRALDFLAGS}
+
+echo "compiler: $CC"
+echo "linker: $LD"
+echo "objdump: $OBJDUMP"
+echo "picflag: $PICFLAG"
+echo "rpathflag: $RPATHFLAG"
+echo "rpathldflag: $RPATHLDFLAG"
+echo "sharedflag: $SHAREDFLAG"
+echo "xtraflags: $XTRAFLAGS"
+echo "xtraldflags: $XTRALDFLAGS"
+echo ""
+
+echo "creating lib/libtest-dynlink.c"
+mkdir -p lib
+cat > lib/libtest-dynlink.c <<EOT
+#include <stdio.h>
+void foo() { printf("bar\n"); }
+EOT
+echo "compiling lib/libtest-dynlink.c"
+$CC -c $PICFLAG -O -o lib/libtest-dynlink.o lib/libtest-dynlink.c || exit 1
+
+echo "creating lib/libtest-dynlink.so with $CC"
+CMD="$CC $SHAREDFLAG ${RPATHFLAG}${base}/lib $XTRAFLAGS \
+    -o lib/libtest-dynlink.so lib/libtest-dynlink.o"
+echo "$CMD"
+$CMD || exit 1
+got=`$OBJDUMP -p lib/libtest-dynlink.so | fgrep ${base}/lib | \
+           egrep 'RPATH|RUNPATH'`
+if [ $? != 0 ]; then
+   echo "Error: no path?"
+   exit 1
+fi
+echo "=== Result: $got"
+result1=$got
+echo ""
+
+echo "creating lib/libtest-dynlink.so with $LD"
+CMD="$LD $SHAREDFLAG ${RPATHLDFLAG}${base}/lib $XTRALDFLAGS \
+    -o lib/libtest-dynlink.so lib/libtest-dynlink.o"
+echo "$CMD"
+$CMD || exit 1
+got=`$OBJDUMP -p lib/libtest-dynlink.so | fgrep ${base}/lib | \
+           egrep 'RPATH|RUNPATH'`
+echo "=== Result: $got"
+result2=$got
+echo ""
+
+echo "creating lib/libtest-notneeded.c"
+mkdir -p lib
+cat > lib/libtest-notneeded.c <<EOT
+#include <stdio.h>
+void notneeded() { printf("so true\n"); }
+EOT
+echo "compiling lib/libtest-notneeded.c"
+$CC -c $PICFLAG -O -o lib/libtest-notneeded.o lib/libtest-notneeded.c || exit 1
+echo "creating lib/libtest-notneeded.so with $CC"
+CMD="$CC $SHAREDFLAG ${RPATHFLAG}${base}/lib $XTRAFLAGS \
+    -o lib/libtest-notneeded.so lib/libtest-notneeded.o"
+echo "$CMD"
+$CMD || exit 1
+
+echo "relinking lib/libtest-dynlink.so with libtest-notneeded using $CC"
+CMD="$CC $SHAREDFLAG ${RPATHFLAG}${base}/lib $XTRAFLAGS \
+    -o lib/libtest-dynlink.so lib/libtest-dynlink.o \
+    -L${base}/lib -ltest-notneeded"
+echo "$CMD"
+$CMD || exit 1
+got=`$OBJDUMP -p lib/libtest-dynlink.so | fgrep NEEDED | fgrep test-notneeded`
+echo "=== Result: $got"
+result3=$got
+echo ""
+
+
+echo "Result summary:"
+echo "linking with $CC - $result1"
+echo "linking with $LD - $result2"
+echo "linking notneeded with $CC - $result3"
+
+exit 0
